@@ -32,6 +32,10 @@
     "btag_wp_medium_UL16APV"  : 0.2598,
     "btag_wp_medium_UL17" : 0.3040,
     "btag_wp_medium_UL18" : 0.2783,
+    "btag_wp_tight_UL16"  : 0.6377,
+    "btag_wp_tight_UL16APV"  : 0.6052,
+    "btag_wp_tight_UL17" : 0.7476,
+    "btag_wp_tight_UL18" : 0.7100,
 
     "lo_xsec_samples": [
         "TTGamma_centralUL16APV",
