@@ -55,7 +55,7 @@ class AnalysisProcessor(processor.ProcessorABC):
         self.jpsi_mass_bins = np.linspace(2.8, 3.4, 61)
         self.d0_mass_bins = np.linspace(1.7, 2.0, 61)
         self.xb_bins = np.linspace(0, 1, 11)
-        self.systematics = ['nominal', 'FSRup', 'FSRdown', 'ISRup', 'ISRdown']
+        #self.systematics = ['nominal', 'FSRup', 'FSRdown', 'ISRup', 'ISRdown']
 
         dataset_axis = hist.axis.StrCategory(name="dataset", label="", categories=[], growth=True)
         jpt_axis = hist.axis.Regular(name="j0pt", label="Leading jet $p_{\mathrm{T}}$ [GeV]", bins=50, start=0, stop=300)
@@ -120,10 +120,6 @@ class AnalysisProcessor(processor.ProcessorABC):
             'sumw'  : processor.defaultdict_accumulator(float),
             'sumw2' : processor.defaultdict_accumulator(float),
             #'sumw_syst' : hist.Hist(hist.axis.Regular(name='weight', label='weight', bins=2, start=0, stop=2), systematic_axis),
-            'sumwFSRup'  : processor.defaultdict_accumulator(float),
-            'sumwFSRdown'  : processor.defaultdict_accumulator(float),
-            'sumwISRup'  : processor.defaultdict_accumulator(float),
-            'sumwISRdown'  : processor.defaultdict_accumulator(float),
         })
 
         # Set the list of hists to fill
@@ -268,7 +264,8 @@ class AnalysisProcessor(processor.ProcessorABC):
             'JES_FlavorQCDUp', 'JES_AbsoluteUp', 'JES_RelativeBalUp', 'JES_BBEC1Up', 'JES_RelativeSampleUp', 'JES_FlavorQCDDown', 'JES_AbsoluteDown', 'JES_RelativeBalDown', 'JES_BBEC1Down', 'JES_RelativeSampleDown'
         ]
         wgt_correction_syst_lst = [
-            f"btagSFbc_{year}Up",f"btagSFbc_{year}Down","btagSFbc_corrUp","btagSFbc_corrDown",f"btagSFlight_{year}Up",f"btagSFlight_{year}Down","btagSFlight_corrUp","btagSFlight_corrDown","PUUp","PUDown", # Exp systs
+            "PUUp","PUDown", # Exp systs
+            #f"btagSFbc_{year}Up",f"btagSFbc_{year}Down","btagSFbc_corrUp","btagSFbc_corrDown",f"btagSFlight_{year}Up",f"btagSFlight_{year}Down","btagSFlight_corrUp","btagSFlight_corrDown","PUUp","PUDown", # Exp systs
             #"lepSF_muonUp","lepSF_muonDown","lepSF_elecUp","lepSF_elecDown",f"btagSFbc_{year}Up",f"btagSFbc_{year}Down","btagSFbc_corrUp","btagSFbc_corrDown",f"btagSFlight_{year}Up",f"btagSFlight_{year}Down","btagSFlight_corrUp","btagSFlight_corrDown","PUUp","PUDown","PreFiringUp","PreFiringDown",f"triggerSF_{year}Up",f"triggerSF_{year}Down", # Exp systs
             "FSRUp","FSRDown","ISRUp","ISRDown" # Theory systs
         ]
@@ -283,7 +280,7 @@ class AnalysisProcessor(processor.ProcessorABC):
         if not isData:
 
             # Get the genWeight
-            genw= np.ones_like(events["event"])
+            genw = events.Generator.weight
 
             # Normalize by (xsec/sow)*genw where genw is 1 for EFT samples
             # Note that for theory systs, will need to multiply by sow/sow_wgtUP to get (xsec/sow_wgtUp)*genw and same for Down
@@ -496,7 +493,7 @@ class AnalysisProcessor(processor.ProcessorABC):
             jpsi_mask = chi2_mask & b_mask & (charm_cand.jetIdx>-1) & (np.abs(charm_cand.meson_id) == 443)
             d0_mask = chi2_mask & (charm_cand.jetIdx>-1) & (np.abs(charm_cand.meson_id) == 421)
             jpsi_mask = chi2_mask & (charm_cand.jetIdx>-1) & (np.abs(charm_cand.meson_id) == 443)
-            mass = ak.firsts(charm_cand.fit_mass)
+            mass = np.nan_to_num(ak.firsts(charm_cand.fit_mass), nan=-1, posinf=-1, neginf=-1)
 
             # D0 mu tagged
             pi_gid = ak.firsts(ak.fill_none(charm_cand.pigId, 0))
@@ -544,12 +541,12 @@ class AnalysisProcessor(processor.ProcessorABC):
 
             # Variables we will loop over when filling hists
             varnames = {}
-            xb    = np.nan_to_num(ak.firsts(charm_cand.pt / jets[charm_cand.jetIdx].pt), neginf=-1)
+            xb    = np.nan_to_num(ak.firsts(charm_cand.pt / jets[charm_cand.jetIdx].pt), nan=-1, posinf=-1, neginf=-1)
             xb_ch = np.nan_to_num(ak.firsts(charm_cand.fit_pt / charm_cand.j_pt_ch), nan=-1, posinf=-1, neginf=-1)
             varnames["xb"]    = xb
             varnames["xb_ch"] = xb_ch
-            xb_d0mu = np.nan_to_num(ak.firsts(xb + charm_cand.x_pt / jets.pt[charm_cand.jetIdx]), neginf=-1)
-            xb_d0mu_ch = np.nan_to_num(ak.firsts(xb + charm_cand.x_pt / charm_cand.j_pt_ch), neginf=-1)
+            xb_d0mu = np.nan_to_num(ak.firsts(xb + charm_cand.x_pt / jets.pt[charm_cand.jetIdx]), nan=-1, posinf=-1, neginf=-1)
+            xb_d0mu_ch = np.nan_to_num(ak.firsts(xb + charm_cand.x_pt / charm_cand.j_pt_ch), nan=-1, posinf=-1, neginf=-1)
             varnames["xb_d0mu"] = xb_d0mu
             varnames["xb_d0mu_ch"] = xb_d0mu_ch
             varnames["xb_mass_d0"] = (xb_ch, mass)
@@ -663,10 +660,14 @@ class AnalysisProcessor(processor.ProcessorABC):
                 if (wgt_fluct == "nominal") or (wgt_fluct in obj_correction_syst_lst):
                     # In the case of "nominal", or the jet energy systematics, no weight systematic variation is used
                     syst_weight = weights_object.weight(None)
+                    syst_weight = np.nan_to_num(syst_weight, nan=-1, posinf=-1, neginf=-1)
                     hout['sumw'][dataset]  = ak.sum(syst_weight, axis=0)
                     hout['sumw2'][dataset] = ak.sum(np.square(syst_weight), axis=0)
                 else:
                     syst_weight = weights_object.weight(wgt_fluct)
+                    syst_weight = np.nan_to_num(syst_weight, nan=-1, posinf=-1, neginf=-1)
+                    if f'sumw{wgt_fluct}' not in self.output:
+                        self.output[f'sumw{wgt_fluct}'] = processor.defaultdict_accumulator(float)
                     self.output[f'sumw{wgt_fluct}'] = ak.sum(syst_weight, axis=0)
 
             # Loop over the hists we want to fill
@@ -723,7 +724,7 @@ class AnalysisProcessor(processor.ProcessorABC):
                             all_cuts_mask = (all_cuts_mask & ecut_mask)
 
                         # Weights
-                        weights_flat = weight[all_cuts_mask]
+                        weights_flat = np.nan_to_num(weight[all_cuts_mask], nan=-1, posinf=-1, neginf=-1)
 
 
                         # Fill the histos
