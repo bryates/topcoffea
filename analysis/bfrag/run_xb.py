@@ -35,6 +35,13 @@ WGT_VAR_LST = [
     "nSumOfWeights_renormfactDown",
 ]
 
+def get_xsec(year):
+    xsec_json = "xsecs.json"
+    with open(xsec_json) as f_xsec:
+        xsec = json.load(f_xsec)
+        xsec = xsec[year]
+    return xsec
+
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(description='You can customize your run')
@@ -189,12 +196,13 @@ if __name__ == '__main__':
         year = '20'+sname.split('_')[-1]
         samplesdict[sname]['year'] = year
         flist[sname] = [(redirector+f) for f in samplesdict[sname]['files']]
-        #samplesdict[sname]['xsec'] = float(samplesdict[sname]['xsec'])
+        samplesdict[sname]['xsec'] = get_xsec('_'.join(sname.split('_')[:-1]))
+        samplesdict[sname]['isData'] = 'Data' in sname
         # Print file info
         print('>> '+sname)
-        #print('   - isData?      : %s'   %('YES' if samplesdict[sname]['isData'] else 'NO'))
+        print('   - isData?      : %s'   %('YES' if samplesdict[sname]['isData'] else 'NO'))
         print('   - year         : %s'   %samplesdict[sname]['year'])
-        #print('   - xsec         : %f'   %samplesdict[sname]['xsec'])
+        print('   - xsec         : %f'   %samplesdict[sname]['xsec'])
 
     if pretend:
         print('pretending...')
@@ -334,7 +342,7 @@ if __name__ == '__main__':
                             "schema": processor.NanoAODSchema,
                             "retries": 4,
                         },
-                        chunksize=250_000,
+                        chunksize=100_000,
                         #maxchunks=args.max,
                     )
                     save(output, f'/afs/crc.nd.edu/user/b/byates2/topcoffea/analysis/bfrag/histos/coffea_dask.pkl')

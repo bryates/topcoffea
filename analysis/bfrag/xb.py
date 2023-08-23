@@ -52,9 +52,9 @@ class AnalysisProcessor(processor.ProcessorABC):
         self._dtype = dtype
 
         # Create the histograms
-        self.jpsi_mass_bins = np.linspace(2.8, 3.4, 61)
-        self.d0_mass_bins = np.linspace(1.7, 2.0, 61)
-        self.xb_bins = np.linspace(0, 1, 11)
+        self.jpsi_mass_bins = np.linspace(2.8, 3.4, 60)
+        self.d0_mass_bins = np.linspace(1.7, 2.0, 60)
+        self.xb_bins = np.linspace(0, 1, 10)
         #self.systematics = ['nominal', 'FSRup', 'FSRdown', 'ISRup', 'ISRdown']
 
         dataset_axis = hist.axis.StrCategory(name="dataset", label="", categories=[], growth=True)
@@ -73,7 +73,7 @@ class AnalysisProcessor(processor.ProcessorABC):
         njets_axis = hist.axis.Regular(name='njets', label='$N_{\mathrm{jets}}$', bins=10, start=0, stop=10)
         nbjets_axis = hist.axis.Regular(name='nbjets', label='$N_{\mathrm{b-jets}}$', bins=10, start=0, stop=10)
         nleps_axis = hist.axis.Regular(name='nleps', label='$N_{\mathrm{leps}}$', bins=10, start=0, stop=10)
-        jpsi_mass_axis = hist.axis.Regular(name='jpsi_mass', label='J/Psi mass [GeV]', bins=len(self.jpsi_mass_bins), start=self.jpsi_mass_bins[0], stop=self.jpsi_mass_bins[-1])
+        jpsi_mass_axis = hist.axis.Regular(name='mass', label='J/Psi mass [GeV]', bins=len(self.jpsi_mass_bins), start=self.jpsi_mass_bins[0], stop=self.jpsi_mass_bins[-1])
         d0_mass_axis = hist.axis.Regular(name='mass', label='D0 mass [GeV]', bins=len(self.d0_mass_bins), start=self.d0_mass_bins[0], stop=self.d0_mass_bins[-1])
         mass_axes = [hist.axis.Regular(name=f'd0_{int(xb_bin*10)}', label='D0 mass [GeV] (' + str(round(self.xb_bins[ibin], 2)) + ' < $x_{\mathrm{b}}$ < ' + str(round(self.xb_bins[ibin+1], 2)) + ')', bins=len(self.d0_mass_bins), start=self.d0_mass_bins[0], stop=self.d0_mass_bins[-1]) for ibin,xb_bin in enumerate(self.xb_bins[:-1])]
         meson_axis = hist.axis.IntCategory(name="meson_id", label="Meson pdgId (421 D0, 42113 D0mu, 443 J/Psi, 443211 J/Psi+K)", categories=[421, 42113, 443])
@@ -158,10 +158,10 @@ class AnalysisProcessor(processor.ProcessorABC):
         # Dataset parameters
         dataset = events.metadata["dataset"]
 
-        isData             = False#self._samples[dataset]["isData"]
-        year               = '20' + dataset.split('_')[-1]
-        xsec               = 1#self._samples[dataset]["xsec"]
-        sow                = 1#self._samples[dataset]["nSumOfWeights"]
+        isData             = self._samples[dataset]["isData"]
+        year               = self._samples[dataset]['year']#'20' + dataset.split('_')[-1]
+        xsec               = self._samples[dataset]["xsec"]
+        sow                = np.ones_like(events["event"])#self._samples[dataset]["nSumOfWeights"]
 
         # Get up down weights from input dict
         '''
@@ -228,10 +228,10 @@ class AnalysisProcessor(processor.ProcessorABC):
             sampleType = "data"
 
         # Initialize objects
-        met = events.MET
-        jets = events.Jet
+        met  = events.MET
         ele  = events.Electron
         mu   = events.Muon
+        jets = events.Jet
 
         # An array of lenght events that is just 1 for each event
         # Probably there's a better way to do this, but we use this method elsewhere so I guess why not..
@@ -280,7 +280,8 @@ class AnalysisProcessor(processor.ProcessorABC):
         if not isData:
 
             # Get the genWeight
-            genw = events.Generator.weight
+            genw = np.nan_to_num(events.genWeight, nan=0, posinf=0, neginf=0)
+            print(genw, '\n\n\n\n')
 
             # Normalize by (xsec/sow)*genw where genw is 1 for EFT samples
             # Note that for theory systs, will need to multiply by sow/sow_wgtUP to get (xsec/sow_wgtUp)*genw and same for Down
@@ -340,7 +341,7 @@ class AnalysisProcessor(processor.ProcessorABC):
                 cleanedJets=ApplyJetSystematics(year,cleanedJets,syst_var)
                 met=ApplyJetCorrections(year, corr_type='met').build(met_raw, cleanedJets, lazy_cache=events_cache)
             cleanedJets["isGood"] = isTightJet(getattr(cleanedJets, jetptname), cleanedJets.eta, cleanedJets.jetId, jetPtCut=30.) # temporary at 25 for synch, TODO: Do we want 30 or 25?
-            goodJets = cleanedJets[cleanedJets.isGood]
+            goodJets = jets#cleanedJets[cleanedJets.isGood]
 
             # Count jets
             njets = ak.num(goodJets)
@@ -405,9 +406,9 @@ class AnalysisProcessor(processor.ProcessorABC):
                 btagwpt = get_param("btag_wp_tight_UL16APV")
             else:
                 raise ValueError(f"Error: Unknown year \"{year}\".")
-            isBtagJetsTight = (goodJets.btagDeepFlavB > btagwpt)
+            isBtagJetsTight = (jets.btagDeepFlavB > btagwpt)
             isNotBtagJetsTight = np.invert(isBtagJetsTight)
-            nbtagst = ak.num(goodJets[isBtagJetsTight])
+            nbtagst = ak.num(jets[isBtagJetsTight])
 
             bjets_tight = ak.pad_none(jets[isBtagJetsTight], 1)
             events['is_ttbar'] = is_ttbar(jets, bjets_tight, leptons)
@@ -488,12 +489,13 @@ class AnalysisProcessor(processor.ProcessorABC):
             ctau_mask = ak.fill_none((charm_cand.vtx_l3d / charm_cand.vtx_el3d) > 10, False)
             ctau = ak.firsts((charm_cand.vtx_l3d / charm_cand.vtx_el3d))
             chi2_mask = (charm_cand.svprob>0.02) & (charm_cand.chi2<5)
+            ht_mask = ht > 180
             b_mask = jets[charm_cand.jetIdx].btagDeepFlavB > btagwpt
             d0_mask = chi2_mask & b_mask & (charm_cand.jetIdx>-1) & (np.abs(charm_cand.meson_id) == 421)
             jpsi_mask = chi2_mask & b_mask & (charm_cand.jetIdx>-1) & (np.abs(charm_cand.meson_id) == 443)
-            d0_mask = chi2_mask & (charm_cand.jetIdx>-1) & (np.abs(charm_cand.meson_id) == 421)
+            d0_mask = ht_mask & chi2_mask & (charm_cand.jetIdx>-1) & (np.abs(charm_cand.meson_id) == 421)
             jpsi_mask = chi2_mask & (charm_cand.jetIdx>-1) & (np.abs(charm_cand.meson_id) == 443)
-            mass = np.nan_to_num(ak.firsts(charm_cand.fit_mass), nan=-1, posinf=-1, neginf=-1)
+            mass = ak.firsts(charm_cand.fit_mass)
 
             # D0 mu tagged
             pi_gid = ak.firsts(ak.fill_none(charm_cand.pigId, 0))
@@ -541,12 +543,12 @@ class AnalysisProcessor(processor.ProcessorABC):
 
             # Variables we will loop over when filling hists
             varnames = {}
-            xb    = np.nan_to_num(ak.firsts(charm_cand.pt / jets[charm_cand.jetIdx].pt), nan=-1, posinf=-1, neginf=-1)
-            xb_ch = np.nan_to_num(ak.firsts(charm_cand.fit_pt / charm_cand.j_pt_ch), nan=-1, posinf=-1, neginf=-1)
+            xb    = ak.firsts(charm_cand.pt / jets[charm_cand.jetIdx].pt)
+            xb_ch = ak.firsts(charm_cand.fit_pt / charm_cand.j_pt_ch)
             varnames["xb"]    = xb
             varnames["xb_ch"] = xb_ch
-            xb_d0mu = np.nan_to_num(ak.firsts(xb + charm_cand.x_pt / jets.pt[charm_cand.jetIdx]), nan=-1, posinf=-1, neginf=-1)
-            xb_d0mu_ch = np.nan_to_num(ak.firsts(xb + charm_cand.x_pt / charm_cand.j_pt_ch), nan=-1, posinf=-1, neginf=-1)
+            xb_d0mu = ak.firsts(xb + charm_cand.x_pt / jets.pt[charm_cand.jetIdx])
+            xb_d0mu_ch = ak.firsts(xb + charm_cand.x_pt / charm_cand.j_pt_ch)
             varnames["xb_d0mu"] = xb_d0mu
             varnames["xb_d0mu_ch"] = xb_d0mu_ch
             varnames["xb_mass_d0"] = (xb_ch, mass)
@@ -559,13 +561,13 @@ class AnalysisProcessor(processor.ProcessorABC):
             # This dictionary keeps track of which selections go with which SR categories
             sr_cat_dict = {
                 "d0" : {
-                    "chan_lst" : ["d0"],
+                    "chan_lst" : ["d0", "ttbar", "ctau", "vtx"],
                 },
                 "d0mu" : {
-                    "chan_lst" : ["d0mu"],
+                    "chan_lst" : ["d0mu", "ttbar", "ctau", "vtx"],
                 },
                 "jpsi" : {
-                    "chan_lst" : ["jpsi"],
+                    "chan_lst" : ["jpsi", "ttbar", "ctau", "vtx"],
                 },
             }
 
@@ -659,16 +661,15 @@ class AnalysisProcessor(processor.ProcessorABC):
             for wgt_fluct in wgt_var_lst:
                 if (wgt_fluct == "nominal") or (wgt_fluct in obj_correction_syst_lst):
                     # In the case of "nominal", or the jet energy systematics, no weight systematic variation is used
-                    syst_weight = weights_object.weight(None)
-                    syst_weight = np.nan_to_num(syst_weight, nan=-1, posinf=-1, neginf=-1)
+                    syst_weight = np.nan_to_num(weights_object.weight(None) / (xsec * lumi), nan=0, posinf=0, neginf=0 )
+                    print(syst_weight, '\n\n\n\n')
                     hout['sumw'][dataset]  = ak.sum(syst_weight, axis=0)
                     hout['sumw2'][dataset] = ak.sum(np.square(syst_weight), axis=0)
                 else:
-                    syst_weight = weights_object.weight(wgt_fluct)
-                    syst_weight = np.nan_to_num(syst_weight, nan=-1, posinf=-1, neginf=-1)
+                    syst_weight = weights_object.weight(wgt_fluct) / (xsec * lumi)
                     if f'sumw{wgt_fluct}' not in self.output:
                         self.output[f'sumw{wgt_fluct}'] = processor.defaultdict_accumulator(float)
-                    self.output[f'sumw{wgt_fluct}'] = ak.sum(syst_weight, axis=0)
+                    self.output[f'sumw{wgt_fluct}'] = ak.sum(np.nan_to_num(syst_weight, nan=0, posinf=0, neginf=0), axis=0)
 
             # Loop over the hists we want to fill
             for dense_axis_name, dense_axis_vals in varnames.items():
@@ -704,6 +705,12 @@ class AnalysisProcessor(processor.ProcessorABC):
                                 if weights_object.variations != set(data_syst_lst): raise Exception(f"Error: Unexpected wgt variations for data! Expected \"{set(data_syst_lst)}\" but have \"{weights_object.variations}\".")
 
                         cuts_lst = cat_dict[cat_chan]['chan_lst']
+                        if 'xb_mass' in dense_axis_name and cat_chan not in dense_axis_name:
+                            continue
+                        if 'd0mu' in dense_axis_name and 'd0mu' not in cat_chan:
+                            continue
+                        if 'd0mu' not in dense_axis_name and 'd0mu' in cat_chan:
+                            continue
                         if isData:
                             cuts_lst.append("is_good_lumi")
                         if self._split_by_lepton_flavor:
@@ -724,7 +731,7 @@ class AnalysisProcessor(processor.ProcessorABC):
                             all_cuts_mask = (all_cuts_mask & ecut_mask)
 
                         # Weights
-                        weights_flat = np.nan_to_num(weight[all_cuts_mask], nan=-1, posinf=-1, neginf=-1)
+                        weights_flat = np.nan_to_num(weight[all_cuts_mask], nan=0, posinf=0, neginf=0)
 
 
                         # Fill the histos

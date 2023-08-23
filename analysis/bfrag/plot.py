@@ -27,8 +27,8 @@ def group(h: hist.Hist, oldname: str, newname: str, grouping: dict[str, list[str
 
 
 parser = argparse.ArgumentParser(description='You can select which file to run over')
-parser.add_argument('--xsec', help = 'JSON file of xsecs', required=True)
-parser.add_argument('--lumi', help = 'JSON file of xsecs', default='data/UL/lumi.json')
+#parser.add_argument('--xsec', help = 'JSON file of xsecs', required=True)
+#parser.add_argument('--lumi', help = 'JSON file of xsecs', default='data/UL/lumi.json')
 args = parser.parse_args()
 
 plt.style.use(hep.style.CMS)
@@ -45,15 +45,19 @@ for key in fin.keys():
         output[key] = fin[key]
 del fin
 print(output['sumw'])
+sumw = 0
+for dataset in output['sumw']:
+    sumw += output['sumw'][dataset]
 
 # Scale processes by cross-section
 lumi = 35.9
 #xsecs = {'ttbar': 830}
-j_xsec = open(args.xsec)
-xsecs = json.load(j_xsec)
-j_lumi = open(args.lumi)
-lumi = json.load(j_lumi)
-lumi_tot = np.round(np.sum(list(lumi.values())),1)
+#j_xsec = open(args.xsec)
+#xsecs = json.load(j_xsec)
+#j_lumi = open(args.lumi)
+#lumi = json.load(j_lumi)
+#lumi_tot = np.round(np.sum(list(lumi.values())),1)
+lumi_tot = lumi
 '''
 '''
 grouping = {}
@@ -65,12 +69,18 @@ for key in output:
         gkey = ax
         if 'ttW' in ax or 'ttZ' in ax or 'ttz' in ax:
             gkey = 'ttV'
+        elif 'tW' in ax:
+            gkey = 'tW'
+        elif 't-channel' in ax:
+            gkey = 't-ch'
         elif 'DY' in ax:
             gkey = 'DY'
         elif 'W' in ax[0] and 'Jets' in ax:
             gkey = 'WJets'
-        else:
-            gkey = gkey.split('_1')[0]
+        elif any([p in ax for p in ['WW', 'WZ', 'ZZ']]):
+            gkey = 'Multi boson'
+        #else:
+        #    gkey = gkey.split('_1')[0]
         g_map[ax] = gkey
         if gkey in grouping:
             grouping[gkey].append(ax)
@@ -86,9 +96,15 @@ for key in output:
     for iax,ax in enumerate(list(output[key].axes[0])):
         # Scale all processes by their lumi and the total xsec (testing wth 138 fbinv)
         year = ax.split('_')[1]
-        year_lumi = lumi[year]
-        proc = ax.replace(f'_{year}', '')
-        output[key].view(flow=True)[iax] *= year_lumi * 1000 * xsecs[proc] / np.sum([output['sumw'][ax] for ax in grouping[g_map[ax]]])
+        #year_lumi = lumi[year]
+        proc = ax#.replace(f'_{year}', '')
+        #output[key].view(flow=True)[iax] *= xsecs[proc] / sumw
+        print(proc, g_map[ax], np.sum([output['sumw'][ax] for ax in grouping[g_map[ax]]]))
+        #output[key].view(flow=True)[iax] /= np.sum(output['sumw'][ax])
+        output[key].view(flow=True)[iax] /= np.sum([output['sumw'][tax] for tax in grouping[g_map[ax]]])
+        #output[key].view(flow=True)[iax] /= np.sum([output['sumw'][ax] for ax in grouping[g_map[ax]]])
+        #output[key].view(flow=True)[iax] *= xsecs[proc] / np.sum([output['sumw'][ax] for ax in grouping[g_map[ax]]])
+        #output[key].view(flow=True)[iax] *= year_lumi * 1000 * xsecs[proc] / np.sum([output['sumw'][ax] for ax in grouping[g_map[ax]]])
         #print(ax, xsecs[proc], [(ax,ax,output['sumw'][ax]) for ax in grouping[g_map[ax]]], np.sum([output['sumw'][ax] for ax in grouping[g_map[ax]]]))
         #output[key].view(flow=True)[iax] *= year_lumi * 1000 * xsecs[ax] / np.sum(output['sumw'][ax])
         gkey = ax
@@ -173,7 +189,7 @@ d0mu_xb_bins = np.array([0, .2, .4, .5, .6, .7, .8, .9, 1.])
 d0mu_xb_bins = np.linspace(0, 1, 6)
 
 meson_tex = {'d0': '$\mathrm{D^{0}}$', 'd0mu': '$\mathrm{D^{0}}_{\mu}$', 'jpsi': '$\mathrm{J/\psi}$'}
-path = '/eos/user/b/byates/www/BFrag/'
+path = '/afs/crc.nd.edu/user/b/byates2/www/BFrag'
 
 #output['l0pt'].plot1d(label='l0pt')
 #plt.legend()
@@ -261,10 +277,13 @@ def plot_mass(meson='d0'):
     h_name = [h_name[i] for _,i,_ in h_samp]
     #h2.plot1d(label=f'{meson_tex[meson]}')
     h_samp = [histo for _,_,histo in h_samp]
-    h_samp.append(h2[{'dataset': 'ttbar'}])
+    h_samp.append(h2[{'dataset': ['ttbar_16', 'ttbar_16APV']}][{'dataset': sum}])
+    if 'jpsi' in meson:
+        h_samp = [histo[...,::hist.rebin(2)] for histo in h_samp]
     h_name.append('ttbar')
-    hep.histplot(h_samp, label=h_name, stack=True)
+    hep.histplot(h_samp, label=h_name, stack=True, histtype='fill')
     h3 = output[f'xb_mass_{meson}'][{'xb': sum, 'meson_id': hist.loc(pdgId), 'systematic': 'nominal', 'dataset': sum}]
+    '''
     h_fsru = output[f'xb_mass_{meson}'][{'xb': sum, 'meson_id': hist.loc(pdgId), 'dataset': sum, 'systematic': 'FSRUp'}]
     h_fsrd = output[f'xb_mass_{meson}'][{'xb': sum, 'meson_id': hist.loc(pdgId), 'dataset': sum, 'systematic': 'FSRDown'}]
     #Fix normalization
@@ -280,6 +299,7 @@ def plot_mass(meson='d0'):
     bins =  h3.axes[0].edges[:-1]
     print(bins)
     plt.fill_between(bins,err_m,err_p, step='post', facecolor='none', edgecolor='gray', label='Syst err', hatch='////')
+    '''
     bins = list(d0_mass_bins)
     error_band_args = { 
         "edges": bins, "facecolor": "none", "linewidth": 0,
@@ -329,8 +349,19 @@ def plot_mass(meson='d0'):
         plt.close()
     
     
-    output[f'xb_mass_{meson}'][{'dataset': sum, 'mass': sum, 'meson_id': hist.loc(pdgId), 'systematic': 'nominal'}].plot1d(label='$x_{\mathrm{b}}$')
+    #output[f'xb_mass_{meson}'][{'mass': sum, 'meson_id': hist.loc(pdgId), 'systematic': 'nominal'}].plot1d(label='$x_{\mathrm{b}}$')
+    #output[f'xb_mass_{meson}'][{'dataset': sum, 'mass': sum, 'meson_id': hist.loc(pdgId), 'systematic': 'nominal'}].plot1d(label='$x_{\mathrm{b}}$')
     #output[f'xb_mass_{meson}'][{'dataset': sum, f'{meson}_mass': sum, 'meson_id': hist.loc(pdgId), 'systematic': 'nominal'}].plot1d(label='$x_{\mathrm{b}}$')
+    h2 = output[f'xb_mass_{meson}'][{'mass': sum, 'meson_id': hist.loc(pdgId), 'systematic': 'nominal'}]
+    h_name = [s for s in output[f'xb_mass_{meson}'].axes['dataset'] if 'ttbar' not in s]
+    h_samp = [(np.sum(h2[{'dataset': s}].values()), i, h2[{'dataset': s}]) for i,s in enumerate(h_name)]
+    h_samp.sort(key=lambda x: x[0])
+    h_name = [h_name[i] for _,i,_ in h_samp]
+    #h2.plot1d(label=f'{meson_tex[meson]}')
+    h_samp = [histo for _,_,histo in h_samp]
+    h_samp.append(h2[{'dataset': ['ttbar_16', 'ttbar_16APV']}][{'dataset': sum}])
+    h_name.append('ttbar')
+    hep.histplot(h_samp, label=h_name, stack=True)
     plt.legend()
     hep.cms.label(lumi=lumi_tot)
     plt.savefig(f'{path}/xb_{meson_name}_all.png')
@@ -453,5 +484,5 @@ def plot_and_fit_mass(meson='d0'):
 #plot_and_fit_mass('d0mu')
 #plot_and_fit_mass('jpsi')
 plot_mass('d0')
-#plot_mass('jpsi')
+plot_mass('jpsi')
 #plot_mass('d0mu')
