@@ -99,7 +99,7 @@ for key in output:
         #year_lumi = lumi[year]
         proc = ax#.replace(f'_{year}', '')
         #output[key].view(flow=True)[iax] *= xsecs[proc] / sumw
-        print(proc, g_map[ax], np.sum([output['sumw'][ax] for ax in grouping[g_map[ax]]]))
+        #print(proc, g_map[ax], np.sum([output['sumw'][ax] for ax in grouping[g_map[ax]]]))
         #output[key].view(flow=True)[iax] /= np.sum(output['sumw'][ax])
         output[key].view(flow=True)[iax] /= np.sum([output['sumw'][tax] for tax in grouping[g_map[ax]]])
         #output[key].view(flow=True)[iax] /= np.sum([output['sumw'][ax] for ax in grouping[g_map[ax]]])
