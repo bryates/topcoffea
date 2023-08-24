@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import copy
 import coffea
+import uproot
 import numpy as np
 import awkward as ak
 np.seterr(divide='ignore', invalid='ignore', over='ignore')
@@ -95,6 +96,12 @@ class AnalysisProcessor(processor.ProcessorABC):
             'xb_mass_jpsi'  : hist.Hist(dataset_axis, meson_axis, xb_axis, jpsi_mass_axis, systematic_axis),
             'xb_mass_d0mu'  : hist.Hist(dataset_axis, meson_axis, xb_axis, d0_mass_axis, systematic_axis),
             'xb_mass_d0'  : hist.Hist(dataset_axis, meson_axis, xb_axis, d0_mass_axis, systematic_axis),
+            'xb_mass_jpsi_up'  : hist.Hist(dataset_axis, meson_axis, xb_axis, jpsi_mass_axis, systematic_axis),
+            'xb_mass_d0mu_up'  : hist.Hist(dataset_axis, meson_axis, xb_axis, d0_mass_axis, systematic_axis),
+            'xb_mass_d0_up'  : hist.Hist(dataset_axis, meson_axis, xb_axis, d0_mass_axis, systematic_axis),
+            'xb_mass_jpsi_down'  : hist.Hist(dataset_axis, meson_axis, xb_axis, jpsi_mass_axis, systematic_axis),
+            'xb_mass_d0mu_down'  : hist.Hist(dataset_axis, meson_axis, xb_axis, d0_mass_axis, systematic_axis),
+            'xb_mass_d0_down'  : hist.Hist(dataset_axis, meson_axis, xb_axis, d0_mass_axis, systematic_axis),
             'xb_mass_d0_pik'  : hist.Hist(dataset_axis, meson_axis, xb_axis, d0_mass_axis, systematic_axis),
             'xb_mass_d0_kk'  : hist.Hist(dataset_axis, meson_axis, xb_axis, d0_mass_axis, systematic_axis),
             'xb_mass_d0_pipi'  : hist.Hist(dataset_axis, meson_axis, xb_axis, d0_mass_axis, systematic_axis),
@@ -162,6 +169,8 @@ class AnalysisProcessor(processor.ProcessorABC):
         year               = self._samples[dataset]['year']#'20' + dataset.split('_')[-1]
         xsec               = self._samples[dataset]["xsec"]
         sow                = np.ones_like(events["event"])#self._samples[dataset]["nSumOfWeights"]
+        #frag = uproot.open('/afs/crc.nd.edu/user/b/byates2/topcoffea/analysis/bfrag/frag.root')['bfrag']
+        frag = uproot.open('bfragweights.root')
 
         # Get up down weights from input dict
         '''
@@ -281,7 +290,6 @@ class AnalysisProcessor(processor.ProcessorABC):
 
             # Get the genWeight
             genw = np.nan_to_num(events.genWeight, nan=0, posinf=0, neginf=0)
-            print(genw, '\n\n\n\n')
 
             # Normalize by (xsec/sow)*genw where genw is 1 for EFT samples
             # Note that for theory systs, will need to multiply by sow/sow_wgtUP to get (xsec/sow_wgtUp)*genw and same for Down
@@ -545,6 +553,15 @@ class AnalysisProcessor(processor.ProcessorABC):
             varnames = {}
             xb    = ak.firsts(charm_cand.pt / jets[charm_cand.jetIdx].pt)
             xb_ch = ak.firsts(charm_cand.fit_pt / charm_cand.j_pt_ch)
+            xb_x    = frag['fragCP5BL_smooth'].values()[0]
+            xb_nom  = frag['fragCP5BL_smooth'].values()[1]
+            xb_up   = frag['fragCP5BLup_smooth'].values()[1]
+            xb_down = frag['fragCP5BLdown_smooth'].values()[1]
+            xb_up   *= np.sum(xb_nom) / np.sum(xb_up)
+            xb_down *= np.sum(xb_nom) / np.sum(xb_down)
+            #FIXME use gen values
+            xbUp   = np.interp(ak.fill_none(xb, -1), xb_x, xb_up)
+            xbDown = np.interp(ak.fill_none(xb, -1), xb_x, xb_down)
             varnames["xb"]    = xb
             varnames["xb_ch"] = xb_ch
             xb_d0mu = ak.firsts(xb + charm_cand.x_pt / jets.pt[charm_cand.jetIdx])
@@ -662,7 +679,6 @@ class AnalysisProcessor(processor.ProcessorABC):
                 if (wgt_fluct == "nominal") or (wgt_fluct in obj_correction_syst_lst):
                     # In the case of "nominal", or the jet energy systematics, no weight systematic variation is used
                     syst_weight = np.nan_to_num(weights_object.weight(None) / (xsec * lumi), nan=0, posinf=0, neginf=0 )
-                    print(syst_weight, '\n\n\n\n')
                     hout['sumw'][dataset]  = ak.sum(syst_weight, axis=0)
                     hout['sumw2'][dataset] = ak.sum(np.square(syst_weight), axis=0)
                 else:
@@ -743,8 +759,26 @@ class AnalysisProcessor(processor.ProcessorABC):
                             "systematic"    : wgt_fluct, #ak.Array([wgt_fluct] * ak.num(meson_id[all_cuts_mask], axis=0)),
                             "weight"        : weights_flat,
                         }
+                        axes_fill_info_dict_up = {
+                            "xb"            : dense_axis_vals[0][all_cuts_mask],
+                            "mass"          : dense_axis_vals[1][all_cuts_mask],
+                            "meson_id"      : meson_id[all_cuts_mask],
+                            "dataset"       : dataset, #ak.Array([dataset] * ak.num(meson_id[all_cuts_mask], axis=0)),
+                            "systematic"    : wgt_fluct, #ak.Array([wgt_fluct] * ak.num(meson_id[all_cuts_mask], axis=0)),
+                            "weight"        : weights_flat*xbUp[all_cuts_mask],
+                        }
+                        axes_fill_info_dict_down = {
+                            "xb"            : dense_axis_vals[0][all_cuts_mask],
+                            "mass"          : dense_axis_vals[1][all_cuts_mask],
+                            "meson_id"      : meson_id[all_cuts_mask],
+                            "dataset"       : dataset, #ak.Array([dataset] * ak.num(meson_id[all_cuts_mask], axis=0)),
+                            "systematic"    : wgt_fluct, #ak.Array([wgt_fluct] * ak.num(meson_id[all_cuts_mask], axis=0)),
+                            "weight"        : weights_flat*xbDown[all_cuts_mask],
+                        }
 
                         hout[dense_axis_name].fill(**axes_fill_info_dict)
+                        hout[dense_axis_name+'_up'].fill(**axes_fill_info_dict_up)
+                        hout[dense_axis_name+'_down'].fill(**axes_fill_info_dict_down)
 
                         # Do not loop over lep flavors if not self._split_by_lepton_flavor, it's a waste of time and also we'd fill the hists too many times
                         if not self._split_by_lepton_flavor: break
