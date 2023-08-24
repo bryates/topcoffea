@@ -53,7 +53,7 @@ if __name__ == '__main__':
     parser.add_argument('--nworkers','-n'   , default=8  , help = 'Number of workers')
     parser.add_argument('--chunksize','-s' , default=250000, help = 'Number of events per chunk')
     parser.add_argument('--nchunks','-c'   , default=None, help = 'You can choose to run only a number of chunks')
-    parser.add_argument('--outname','-o'   , default='plotsTopEFT', help = 'Name of the output file with histograms')
+    parser.add_argument('--outname','-o'   , default='coffea_dask', help = 'Name of the output file with histograms')
     parser.add_argument('--outpath','-p'   , default='histos', help = 'Name of the output directory')
     parser.add_argument('--treename'       , default='Events', help = 'Name of the tree inside the files')
     parser.add_argument('--do-errors'      , action='store_true', help = 'Save the w**2 coefficients')
@@ -365,7 +365,7 @@ if __name__ == '__main__':
         print("Processing time: %1.2f s with %i workers (%.2f s cpu overall)" % (dt, nworkers, dt*nworkers, ))
 
     # Save the output
-    save(output, f'/afs/crc.nd.edu/user/b/byates2/topcoffea/analysis/bfrag/histos/coffea_dask.pkl')
+    save(output, f'/afs/crc.nd.edu/user/b/byates2/topcoffea/analysis/bfrag/histos/{outname}.pkl')
     #if not os.path.isdir(outpath): os.system("mkdir -p %s"%outpath)
     #out_pkl_file = os.path.join(outpath,outname+".pkl.gz")
     #print(f"\nSaving output in {out_pkl_file}...")
