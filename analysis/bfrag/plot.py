@@ -71,7 +71,7 @@ for key in output:
             gkey = 'ttV'
         elif 'tW' in ax:
             gkey = 'tW'
-        elif 't-channel' in ax:
+        elif 'SingleT' in ax:
             gkey = 't-ch'
         elif 'DY' in ax:
             gkey = 'DY'
@@ -181,15 +181,16 @@ def jpsi_mass_fit(mass, mean, sigma, alpha, n, nsig, l, nbkg):
     return nsig * cb  + nbkg * np.exp(l * mass)
 
 
-d0_mass_bins = np.linspace(1.7, 2.0, 61)
-jpsi_mass_bins = np.linspace(2.8, 3.4, 61)
-d0mu_mass_bins = np.linspace(1.7, 2.0, 61)
-xb_bins = np.linspace(0, 1, 11)
+d0_mass_bins = np.linspace(1.7, 2.0, 60)
+jpsi_mass_bins = np.linspace(2.8, 3.4, 60)
+d0mu_mass_bins = np.linspace(1.7, 2.0, 60)
+xb_bins = np.linspace(0, 1, 10)
 d0mu_xb_bins = np.array([0, .2, .4, .5, .6, .7, .8, .9, 1.])
 d0mu_xb_bins = np.linspace(0, 1, 6)
 
 meson_tex = {'d0': '$\mathrm{D^{0}}$', 'd0mu': '$\mathrm{D^{0}}_{\mu}$', 'jpsi': '$\mathrm{J/\psi}$'}
 path = '/afs/crc.nd.edu/user/b/byates2/www/BFrag'
+path = '/eos/home-b/byates/www/BFrag'
 
 #output['l0pt'].plot1d(label='l0pt')
 #plt.legend()
@@ -413,7 +414,7 @@ def plot_and_fit_mass(meson='d0'):
         output[f'xb_mass_{meson}'] = output[f'xb_mass_{meson}'][...,::hist.rebin(2)]
     '''
     meson = meson.replace('_mu', '')
-    h = output[f'xb_mass_{meson}']
+    h = output[f'xb_mass_{meson}'][{'dataset': sum,  'systematic': 'nominal'}]
     fit_func = d0_mass_fit
     mass_bins = d0_mass_bins
     if 'jpsi' in meson:
@@ -425,7 +426,7 @@ def plot_and_fit_mass(meson='d0'):
             xb_mass.append(0)
             bins.append(xb_bins[ibin])
             continue
-        x = h[{'xb': slice(hist.loc(xb_bins[ibin]), hist.loc(xb_bins[ibin+1]), sum), 'meson_id': hist.loc(pdgId)}].values()[0]
+        x = h[{'xb': slice(hist.loc(xb_bins[ibin]), hist.loc(xb_bins[ibin+1]), sum), 'meson_id': hist.loc(pdgId)}].values()
         ne0 = np.sum(x)#*2
         if ne0 < 21 or ('mu' in meson and ne0<1):
             xb_mass.append(0)
@@ -473,14 +474,21 @@ def plot_and_fit_mass(meson='d0'):
     hep.cms.label(lumi=lumi_tot)
     plt.savefig(f'{path}/{meson_name}_mass_fit.png')
     plt.close()
+    xb_nom   = output[f'xb_mass_{meson}'][{'dataset': sum,  'systematic': 'nominal', 'mass': sum, 'meson_id': hist.loc(pdgId)}].values()
+    xb_up    = output[f'xb_mass_{meson}_up'][{'dataset': sum,  'systematic': 'nominal', 'mass': sum, 'meson_id': hist.loc(pdgId)}].values()
+    xb_down  = output[f'xb_mass_{meson}_down'][{'dataset': sum,  'systematic': 'nominal', 'mass': sum, 'meson_id': hist.loc(pdgId)}].values()
     plt.step(x=bins, y=xb_mass, label='$x_{\mathrm{b}}$ signal')
+    xb_mass_up = xb_mass * xb_up / xb_nom
+    plt.step(x=bins, y=xb_mass_up, label='$x_{\mathrm{b}}$ Up signal')
+    xb_mass_down = xb_mass * xb_down / xb_nom
+    plt.step(x=bins, y=xb_mass_down, label='$x_{\mathrm{b}}$ Down signal')
     plt.legend()
     hep.cms.label(lumi=lumi_tot)
     plt.savefig(f'{path}/xb_{meson_name}_sig.png')
     plt.close()
 
 
-#plot_and_fit_mass('d0')
+plot_and_fit_mass('d0')
 #plot_and_fit_mass('d0mu')
 #plot_and_fit_mass('jpsi')
 plot_mass('d0')
