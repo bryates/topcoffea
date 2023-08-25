@@ -4,6 +4,7 @@ import hist
 import matplotlib as mpl
 mpl.use('Agg')
 import matplotlib.pyplot as plt
+import boost_histogram as bh
 import numpy as np
 import os
 from scipy.optimize import curve_fit
@@ -478,19 +479,38 @@ def plot_and_fit_mass(meson='d0'):
     xb_up    = output[f'xb_mass_{meson}_up'][{'dataset': sum,  'systematic': 'nominal', 'mass': sum, 'meson_id': hist.loc(pdgId)}].values()
     xb_down  = output[f'xb_mass_{meson}_down'][{'dataset': sum,  'systematic': 'nominal', 'mass': sum, 'meson_id': hist.loc(pdgId)}].values()
     plt.step(x=bins, y=xb_mass, label='$x_{\mathrm{b}}$ signal')
-    xb_mass_up = xb_mass * xb_up / xb_nom
-    plt.step(x=bins, y=xb_mass_up, label='$x_{\mathrm{b}}$ Up signal')
-    xb_mass_down = xb_mass * xb_down / xb_nom
-    plt.step(x=bins, y=xb_mass_down, label='$x_{\mathrm{b}}$ Down signal')
+    xb_mass_up = xb_mass * (xb_up/np.sum(xb_up)) / (xb_nom/np.sum(xb_nom))
+    plt.step(x=bins, y=xb_mass_up, label='$x_{\mathrm{b}}$ signal Up')
+    xb_mass_down = xb_mass * (xb_down/np.sum(xb_down)) / (xb_nom/np.sum(xb_nom))
+    plt.step(x=bins, y=xb_mass_down, label='$x_{\mathrm{b}}$ signal Down')
     plt.legend()
     hep.cms.label(lumi=lumi_tot)
     plt.savefig(f'{path}/xb_{meson_name}_sig.png')
     plt.close()
+    fout = uproot.recreate(f'{meson}_signal.root')
+    low  = 2
+    high = -1
+    bins = bins[low:high]
+    nbins = 10
+    sig = hist.Hist(hist.axis.Variable(bins + [1.1]),storage=bh.storage.Weight())
+    #sig = hist.Hist(hist.axis.Regular(nbins,0,nbins,name='xb'),storage=bh.storage.Weight())
+    variance = output[f'xb_mass_{meson}'][{'dataset': sum,  'systematic': 'nominal', 'mass': sum, 'meson_id': hist.loc(pdgId)}].values()
+    sig[...] = np.stack([xb_mass[low:high], variance[low:high]], axis=-1)
+    print(sig)
+    up = hist.Hist(hist.axis.Variable(bins + [1.1]),storage=bh.storage.Weight())
+    up[...] = np.stack([xb_mass_up[low:high], variance[low:high]], axis=-1)
+    down = hist.Hist(hist.axis.Variable(bins + [1.1]),storage=bh.storage.Weight())
+    down[...] = np.stack([xb_mass_down[low:high], variance[low:high]], axis=-1)
+    fout['data_obs'] = sig # Asimov hack for now
+    fout['xb_sig'] = sig
+    fout['xb_sig_up'] = up
+    fout['xb_sig_down'] = down
+    fout.close()
 
 
 plot_and_fit_mass('d0')
-#plot_and_fit_mass('d0mu')
-#plot_and_fit_mass('jpsi')
-plot_mass('d0')
-plot_mass('jpsi')
-plot_mass('d0mu')
+plot_and_fit_mass('d0mu')
+plot_and_fit_mass('jpsi')
+#plot_mass('d0')
+#plot_mass('jpsi')
+#plot_mass('d0mu')
