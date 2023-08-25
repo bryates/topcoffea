@@ -169,9 +169,7 @@ class AnalysisProcessor(processor.ProcessorABC):
         year               = self._samples[dataset]['year']#'20' + dataset.split('_')[-1]
         xsec               = self._samples[dataset]["xsec"]
         sow                = np.ones_like(events["event"])#self._samples[dataset]["nSumOfWeights"]
-        #frag = uproot.open('/afs/crc.nd.edu/user/b/byates2/topcoffea/analysis/bfrag/frag.root')['bfrag']
-        frag = uproot.open('bfragweights.root')
-        #frag = uproot.open('/afs/cern.ch/user/b/byates/topcoffea/analysis/bfrag/bfragweights.root')
+        frag = uproot.open(topcoffea_path('analysis/bfrag/bfragweights.root'))
 
         # Get up down weights from input dict
         '''
@@ -561,6 +559,7 @@ class AnalysisProcessor(processor.ProcessorABC):
             #xb_up   *= np.sum(xb_nom) / np.sum(xb_up)
             #xb_down *= np.sum(xb_nom) / np.sum(xb_down)
             #FIXME use gen values
+            xbNom   = np.interp(ak.fill_none(xb, -1), xb_x, xb_nom)
             xbUp   = np.interp(ak.fill_none(xb, -1), xb_x, xb_up)
             xbDown = np.interp(ak.fill_none(xb, -1), xb_x, xb_down)
             varnames["xb"]    = xb
@@ -758,7 +757,7 @@ class AnalysisProcessor(processor.ProcessorABC):
                             "meson_id"      : meson_id[all_cuts_mask],
                             "dataset"       : dataset, #ak.Array([dataset] * ak.num(meson_id[all_cuts_mask], axis=0)),
                             "systematic"    : wgt_fluct, #ak.Array([wgt_fluct] * ak.num(meson_id[all_cuts_mask], axis=0)),
-                            "weight"        : weights_flat,
+                            "weight"        : weights_flat*xbNom[all_cuts_mask],
                         }
                         axes_fill_info_dict_up = {
                             "xb"            : dense_axis_vals[0][all_cuts_mask],
