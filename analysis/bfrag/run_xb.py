@@ -35,11 +35,11 @@ WGT_VAR_LST = [
     "nSumOfWeights_renormfactDown",
 ]
 
-def get_xsec(year):
+def get_xsec(proc):
     xsec_json = "xsecs.json"
     with open(xsec_json) as f_xsec:
         xsec = json.load(f_xsec)
-        xsec = xsec[year]
+        xsec = xsec[proc]
     return xsec
 
 if __name__ == '__main__':
@@ -307,15 +307,18 @@ if __name__ == '__main__':
                 nanny = False,
                 #container_runtime = "none",
                 #container_runtime = "singularity",
-                log_directory = "/afs/crc.nd.edu/user/b/byates2/topcoffea/analysis/bfrag/log",
+                log_directory = "logs",
+                #log_directory = "/afs/cern.ch/user/b/byates/CMSSW_10_6_18/src/BFrag/BFrag/logs",
                 #log_directory = "/eos/user/b/byates/condor/log",
                 scheduler_options={
                     'port': n_port,
                     'host': socket.gethostname(),
                     },
+                #job_extra={
                 job_extra_directives={
                     '+JobFlavour': '"workday"',
                     },
+                #extra = ['--worker-port 10000:10100']
                 worker_extra_args = ['--worker-port 10000:10100']
                 ) as cluster:
             print(cluster.job_script())
@@ -345,13 +348,14 @@ if __name__ == '__main__':
                         chunksize=100_000,
                         #maxchunks=args.max,
                     )
-                    save(output, f'/afs/crc.nd.edu/user/b/byates2/topcoffea/analysis/bfrag/histos/coffea_dask.pkl')
+                    #save(output, f'/afs/cern.ch/user/b/byates/CMSSW_10_6_18/src/BFrag/BFrag/histos/{outname}.pkl')
+                    save(output, f'histos/{outname}.pkl')
 
     elif executor ==  "work_queue":
         executor = processor.WorkQueueExecutor(**executor_args)
         runner = processor.Runner(executor, schema=NanoAODSchema, chunksize=chunksize, maxchunks=nchunks, skipbadfiles=False, xrootdtimeout=180)
 
-    output = runner(flist, treename, processor_instance)
+    #output = runner(flist, treename, processor_instance)
     dt = time.time() - tstart
 
     if executor == "work_queue":
@@ -365,7 +369,7 @@ if __name__ == '__main__':
         print("Processing time: %1.2f s with %i workers (%.2f s cpu overall)" % (dt, nworkers, dt*nworkers, ))
 
     # Save the output
-    save(output, f'/afs/crc.nd.edu/user/b/byates2/topcoffea/analysis/bfrag/histos/{outname}.pkl')
+    save(output, f'/afs/cern.ch/user/b/byates/CMSSW_10_6_18/src/BFrag/BFrag/histos/{outname}.pkl')
     #if not os.path.isdir(outpath): os.system("mkdir -p %s"%outpath)
     #out_pkl_file = os.path.join(outpath,outname+".pkl.gz")
     #print(f"\nSaving output in {out_pkl_file}...")
