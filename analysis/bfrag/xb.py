@@ -67,6 +67,7 @@ class AnalysisProcessor(processor.ProcessorABC):
         D0kpt_axis= hist.axis.Regular(name="D0kpt", label="Leading D0 k $p_{\mathrm{T}}$ [GeV]", bins=50, start=0, stop=100)
         xb_jpsi_axis  = hist.axis.Regular(name="xb_jpsi",   label="$x_{\mathrm{b}}$", bins=10, start=0, stop=1)
         xb_axis  = hist.axis.Regular(name="xb",   label="$x_{\mathrm{b}}$", bins=10, start=0, stop=1)
+        d0mu_xb_axis  = hist.axis.Variable(np.array([0, 0.2, 0.4, 0.55, 0.65, 0.75, 0.85, 0.95, 1.0]), name="xb",   label="$x_{\mathrm{b}}$")
         xb_ch_axis  = hist.axis.Regular(name="xb_ch",   label="$x_{\mathrm{b}} \Sigma p_{\mathrm{T}}^{\mathrm{charged}}$", bins=10, start=0, stop=1)
         HT_axis  = hist.axis.Regular(name="HT",   label="$H_{\mathrm{T}}$", bins=50, start=0, stop=1000)
         pdgid_axis= hist.axis.Regular(name="pdgid",   label="D0 id's", bins=10, start=0, stop=250)
@@ -79,7 +80,10 @@ class AnalysisProcessor(processor.ProcessorABC):
         mass_axes = [hist.axis.Regular(name=f'd0_{int(xb_bin*10)}', label='D0 mass [GeV] (' + str(round(self.xb_bins[ibin], 2)) + ' < $x_{\mathrm{b}}$ < ' + str(round(self.xb_bins[ibin+1], 2)) + ')', bins=len(self.d0_mass_bins), start=self.d0_mass_bins[0], stop=self.d0_mass_bins[-1]) for ibin,xb_bin in enumerate(self.xb_bins[:-1])]
         meson_axis = hist.axis.IntCategory(name="meson_id", label="Meson pdgId (421 D0, 443 J/Psi, 443211 J/Psi+K)", categories=[421, 443])
         #meson_axis = hist.axis.IntCategory(name="meson_id", label="Meson pdgId (421 D0, 42113 D0mu, 443 J/Psi, 443211 J/Psi+K)", categories=[421, 42113, 443])
-        flav_axis = hist.axis.IntCategory(name="jet_flav", label="Jet hadron flavor", categories=[1, 4, 5], growth=True)
+        # light = 0
+        # c = 4
+        # b = 5
+        flav_axis = hist.axis.IntCategory(name="jet_flav", label="Jet hadron flavor", categories=[0, 4, 5], growth=True)
         jet_axis = hist.axis.IntCategory(name="jet_id", label="Jet flavor", categories=list(range(1,7)))
         pi_gen_axis = hist.axis.IntCategory(name="pi_gid", label="Gen-matched flavor", categories=[], growth=True)
         k_gen_axis = hist.axis.IntCategory(name="k_gid", label="Gen-matched flavor", categories=[], growth=True)
@@ -96,16 +100,16 @@ class AnalysisProcessor(processor.ProcessorABC):
             'D0kpt': hist.Hist(dataset_axis, D0kpt_axis, systematic_axis),
             'jet_id'  : hist.Hist(dataset_axis, meson_axis, jet_axis, systematic_axis),
             'xb_mass_jpsi'  : hist.Hist(dataset_axis, meson_axis, xb_axis, jpsi_mass_axis, flav_axis, systematic_axis),
-            'xb_mass_d0mu'  : hist.Hist(dataset_axis, meson_axis, xb_axis, d0_mass_axis, flav_axis, systematic_axis),
+            'xb_mass_d0mu'  : hist.Hist(dataset_axis, meson_axis, d0mu_xb_axis, d0_mass_axis, flav_axis, systematic_axis),
             'xb_mass_d0'  : hist.Hist(dataset_axis, meson_axis, xb_axis, d0_mass_axis, flav_axis, systematic_axis),
             'xb_mass_jpsi_nom'  : hist.Hist(dataset_axis, meson_axis, xb_axis, jpsi_mass_axis, flav_axis, systematic_axis),
-            'xb_mass_d0mu_nom'  : hist.Hist(dataset_axis, meson_axis, xb_axis, d0_mass_axis, flav_axis, systematic_axis),
+            'xb_mass_d0mu_nom'  : hist.Hist(dataset_axis, meson_axis, d0mu_xb_axis, d0_mass_axis, flav_axis, systematic_axis),
             'xb_mass_d0_nom'  : hist.Hist(dataset_axis, meson_axis, xb_axis, d0_mass_axis, flav_axis, systematic_axis),
             'xb_mass_jpsi_up'  : hist.Hist(dataset_axis, meson_axis, xb_axis, jpsi_mass_axis, flav_axis, systematic_axis),
-            'xb_mass_d0mu_up'  : hist.Hist(dataset_axis, meson_axis, xb_axis, d0_mass_axis, flav_axis, systematic_axis),
+            'xb_mass_d0mu_up'  : hist.Hist(dataset_axis, meson_axis, d0mu_xb_axis, d0_mass_axis, flav_axis, systematic_axis),
             'xb_mass_d0_up'  : hist.Hist(dataset_axis, meson_axis, xb_axis, d0_mass_axis, flav_axis, systematic_axis),
             'xb_mass_jpsi_down'  : hist.Hist(dataset_axis, meson_axis, xb_axis, jpsi_mass_axis, flav_axis, systematic_axis),
-            'xb_mass_d0mu_down'  : hist.Hist(dataset_axis, meson_axis, xb_axis, d0_mass_axis, flav_axis, systematic_axis),
+            'xb_mass_d0mu_down'  : hist.Hist(dataset_axis, meson_axis, d0mu_xb_axis, d0_mass_axis, flav_axis, systematic_axis),
             'xb_mass_d0_down'  : hist.Hist(dataset_axis, meson_axis, xb_axis, d0_mass_axis, flav_axis, systematic_axis),
             'xb_mass_d0_pik'  : hist.Hist(dataset_axis, meson_axis, xb_axis, d0_mass_axis, systematic_axis),
             'xb_mass_d0_kk'  : hist.Hist(dataset_axis, meson_axis, xb_axis, d0_mass_axis, systematic_axis),
@@ -245,6 +249,11 @@ class AnalysisProcessor(processor.ProcessorABC):
         ele  = events.Electron
         mu   = events.Muon
         jets = events.Jet
+        # Charm meson candidates from b-jets
+        charm_cand = events.BToCharm
+        ptsort = ak.argsort(charm_cand.pt, ascending=False)
+        charm_cand = events.BToCharm[ptsort]
+        #jets = jets[charm_cand.jetIdx]
 
         # An array of lenght events that is just 1 for each event
         # Probably there's a better way to do this, but we use this method elsewhere so I guess why not..
@@ -336,6 +345,7 @@ class AnalysisProcessor(processor.ProcessorABC):
             l_fo = ak.with_name(ak.concatenate([ele, mu], axis=1), 'PtEtaPhiMCandidate')
             vetos_tocleanjets = ak.with_name( l_fo, "PtEtaPhiMCandidate")
             tmp = ak.cartesian([ak.local_index(jets.pt), vetos_tocleanjets.jetIdx], nested=True)
+            jets['isClean'] = ~ak.any(tmp.slot0 == tmp.slot1, axis=-1) # this line should go before *any selection*, otherwise lep.jetIdx is not aligned with the jet index
             cleanedJets = jets[~ak.any(tmp.slot0 == tmp.slot1, axis=-1)] # this line should go before *any selection*, otherwise lep.jetIdx is not aligned with the jet index
 
             # Selecting jets and cleaning them
@@ -352,8 +362,9 @@ class AnalysisProcessor(processor.ProcessorABC):
                 # SYSTEMATICS
                 cleanedJets=ApplyJetSystematics(year,cleanedJets,syst_var)
                 met=ApplyJetCorrections(year, corr_type='met').build(met_raw, cleanedJets, lazy_cache=events_cache)
+            jets["isGood"] = isTightJet(jets.pt, jets.eta, jets.jetId, jetPtCut=30.) # temporary at 25 for synch, TODO: Do we want 30 or 25?
             cleanedJets["isGood"] = isTightJet(getattr(cleanedJets, jetptname), cleanedJets.eta, cleanedJets.jetId, jetPtCut=30.) # temporary at 25 for synch, TODO: Do we want 30 or 25?
-            goodJets = jets#cleanedJets[cleanedJets.isGood]
+            goodJets = cleanedJets[cleanedJets.isGood]
 
             # Count jets
             njets = ak.num(goodJets)
@@ -422,7 +433,7 @@ class AnalysisProcessor(processor.ProcessorABC):
             isNotBtagJetsTight = np.invert(isBtagJetsTight)
             nbtagst = ak.num(jets[isBtagJetsTight])
 
-            bjets_tight = ak.pad_none(jets[isBtagJetsTight], 1)
+            bjets_tight = ak.pad_none(jets[isBtagJetsTight], 0)
             events['is_ttbar'] = is_ttbar(jets, bjets_tight, leptons)
 
 
@@ -495,18 +506,16 @@ class AnalysisProcessor(processor.ProcessorABC):
             bmask_atleast1tight = (nbtagst>=1) # Used for tttt enriched
 
             # Charm meson candidates from b-jets
-            charm_cand = events.BToCharm
-            ptsort = ak.argsort(charm_cand.pt, ascending=False)
-            charm_cand = events.BToCharm[ptsort]
             ctau_mask = ak.fill_none((charm_cand.vtx_l3d / charm_cand.vtx_el3d) > 10, False)
             ctau = ak.firsts((charm_cand.vtx_l3d / charm_cand.vtx_el3d))
-            chi2_mask = (charm_cand.svprob>0.02) & (charm_cand.chi2<5)
+            chi2_mask = ak.fill_none((charm_cand.svprob>0.02) & (charm_cand.chi2<5), False)
             ht_mask = ht > 180
-            b_mask = jets[charm_cand.jetIdx].btagDeepFlavB > btagwpt
-            d0_mask = chi2_mask & b_mask & (charm_cand.jetIdx>-1) & (np.abs(charm_cand.meson_id) == 421)
-            jpsi_mask = chi2_mask & (charm_cand.jetIdx>-1) & (np.abs(charm_cand.meson_id) == 443)
-            d0_mask = ht_mask & chi2_mask & b_mask & (charm_cand.jetIdx>-1) & (np.abs(charm_cand.meson_id) == 421)
-            jpsi_mask = chi2_mask & (charm_cand.jetIdx>-1) & (np.abs(charm_cand.meson_id) == 443)
+            goodJet = jets[charm_cand.jetIdx].isGood & jets[charm_cand.jetIdx].isClean
+            goodJet = jets[charm_cand.jetIdx].isGood
+            b_mask = goodJet & (jets[charm_cand.jetIdx].btagDeepFlavB > btagwpt)
+            #b_mask = goodJets[charm_cand.jetIdx].btagDeepFlavB > btagwpt
+            d0_mask = b_mask & ht_mask & chi2_mask & (charm_cand.jetIdx>-1) & (np.abs(charm_cand.meson_id) == 421)
+            jpsi_mask = b_mask & chi2_mask & (charm_cand.jetIdx>-1) & (np.abs(charm_cand.meson_id) == 443)
             mass = charm_cand.fit_mass
 
             # D0 mu tagged
@@ -523,35 +532,44 @@ class AnalysisProcessor(processor.ProcessorABC):
             maskpipi = ((abs(pi_gid)==211) & (abs(k_gid)==211))
  
             # D0 mu tagged
-            d0_mu_mask = ak.any(np.abs(charm_cand.x_id)==13, -1)
-            #charm_cand[d0_mu_mask]['meson_id'] = 42113 * ak.ones_like(charm_cand[d0_mu_mask].meson_id)
+            d0_mu_mask = np.abs(charm_cand.x_id)==13
+            charm_cand[d0_mu_mask]['meson_id'] = 42113 * ak.ones_like(charm_cand[d0_mu_mask].meson_id)
             meson_id = charm_cand.meson_id
 
             ######### Store boolean masks with PackedSelection ##########
 
             selections = PackedSelection(dtype='uint32')
+            evt_selections = PackedSelection(dtype='uint32')
 
             # Lumi mask (for data)
-            selections.add("is_good_lumi",lumi_mask)
-
-            selections.add('ctau', ak.any(ctau_mask, -1))
-            selections.add('vtx', ak.any(chi2_mask, -1))
+            #selections.add("is_good_lumi",lumi_mask)
 
             # ttbar
-            selections.add('ttbar', events.is_ttbar)
+            #selections.add('ttbar', events.is_ttbar)
+
+            selections.add('ctau', ak.flatten(ctau_mask))
+            evt_selections.add('ctau', ak.any(ctau_mask, -1))
+            selections.add('vtx', ak.flatten(chi2_mask))
+            evt_selections.add('vtx', ak.any(chi2_mask, -1))
 
             # J/Psi
-            selections.add('jpsi', ak.any(jpsi_mask, -1))
+            selections.add('jpsi', ak.flatten(events.is_ttbar & jpsi_mask))
+            evt_selections.add('jpsi', ak.any(events.is_ttbar & jpsi_mask, -1))
+            njpsi = ak.num(events.is_ttbar & jpsi_mask)
 
             # D0
-            selections.add('d0', ak.any(d0_mask & ~d0_mu_mask, -1))
-            selections.add('d0_pik', maskpik)
-            selections.add('d0_kk', maskkk)
-            selections.add('d0_pipi', maskpipi)
-            selections.add('d0_unmatched', (~maskpik & ~maskkk & ~maskpipi))
+            selections.add('d0', ak.flatten(events.is_ttbar & d0_mask & ~d0_mu_mask))
+            evt_selections.add('d0', ak.any(events.is_ttbar & d0_mask & ~d0_mu_mask, -1))
+            nd0 = ak.num(events.is_ttbar & d0_mask & ~d0_mu_mask)
+            #selections.add('d0_pik', ak.flatten(maskpik))
+            #selections.add('d0_kk', ak.flatten(maskkk))
+            #selections.add('d0_pipi', ak.flatten(maskpipi))
+            #selections.add('d0_unmatched', ak.flatten((~maskpik & ~maskkk & ~maskpipi)))
 
             # D0mu
-            selections.add('d0mu', ak.any(d0_mask & d0_mu_mask, -1))
+            selections.add('d0mu', ak.flatten(events.is_ttbar & d0_mask & d0_mu_mask))
+            evt_selections.add('d0mu', ak.any(events.is_ttbar & d0_mask & d0_mu_mask, -1))
+            nd0mu = ak.any(events.is_ttbar & d0_mask & d0_mu_mask)
 
             # Counts
             counts = np.ones_like(events['event'])
@@ -583,13 +601,22 @@ class AnalysisProcessor(processor.ProcessorABC):
             # This dictionary keeps track of which selections go with which SR categories
             sr_cat_dict = {
                 "d0" : {
-                    "chan_lst" : ["d0", "ttbar", "ctau", "vtx"],
+                    "evt_lst" : ["ttbar"],
+                    "chan_lst" : ["d0", "ctau", "vtx"],
+                    "cuts" : d0_mask & ctau_mask & chi2_mask,
+                    "num" : nd0,
                 },
                 "d0mu" : {
-                    "chan_lst" : ["d0mu", "ttbar", "ctau", "vtx"],
+                    "evt_lst" : ["ttbar"],
+                    "chan_lst" : ["d0mu", "ctau", "vtx"],
+                    "cuts" : d0_mu_mask & ctau_mask & chi2_mask,
+                    "num" : nd0mu,
                 },
                 "jpsi" : {
-                    "chan_lst" : ["jpsi", "ttbar", "ctau", "vtx"],
+                    "evt_lst" : ["ttbar"],
+                    "chan_lst" : ["jpsi", "ctau", "vtx"],
+                    "cuts" : jpsi_mask & ctau_mask & chi2_mask,
+                    "num" : njpsi,
                 },
             }
 
@@ -746,20 +773,23 @@ class AnalysisProcessor(processor.ProcessorABC):
                             all_cuts_mask = (selections.all(*cuts_lst) & njets_any_mask)
                         else:
                             all_cuts_mask = selections.all(*cuts_lst)
+                            all_cuts_mask = cat_dict[cat_chan]['cuts']
+                            evt_cuts_mask = evt_selections.all(*cuts_lst)
 
                         # Apply the optional cut on energy of the event
                         if self._ecut_threshold is not None:
                             all_cuts_mask = (all_cuts_mask & ecut_mask)
 
                         # Weights
-                        weights_flat = np.nan_to_num(weight[all_cuts_mask], nan=0, posinf=0, neginf=0)
+                        #all_cuts_mask = ak.fill_none(ak.unflatten(all_cuts_mask, cat_dict[cat_chan]['num']), False, 1)
+                        weights_flat = np.nan_to_num(weight[ak.any(all_cuts_mask, -1)], nan=0, posinf=0, neginf=0)
 
 
                         # Fill the histos
-                        xb_val       = ak.firsts(dense_axis_vals[0][all_cuts_mask])
-                        mass_val     = ak.firsts(dense_axis_vals[1][all_cuts_mask])
-                        meson_id_val = ak.firsts(meson_id[all_cuts_mask])
-                        jet_flav_val = ak.firsts(jet_flav[all_cuts_mask])
+                        xb_val       = ak.flatten(ak.firsts(dense_axis_vals[0][all_cuts_mask], axis=-1), 0)
+                        mass_val     = ak.flatten(ak.firsts(dense_axis_vals[1][all_cuts_mask], axis=-1), 0)
+                        meson_id_val = ak.flatten(ak.firsts(meson_id[all_cuts_mask], axis=-1), 0)
+                        jet_flav_val = ak.flatten(ak.firsts(jet_flav[all_cuts_mask], axis=-1), 0)
                         #FIXME use gen values
                         xbNom  = np.interp(ak.fill_none(xb_val, -1), xb_x, xb_nom)
                         xbUp   = np.interp(ak.fill_none(xb_val, -1), xb_x, xb_up)
@@ -803,6 +833,7 @@ class AnalysisProcessor(processor.ProcessorABC):
 
                         hout[dense_axis_name].fill(**axes_fill_info_dict)
                         if 'xb_mass' in dense_axis_name:
+                            hout[dense_axis_name+'_nom'].fill(**axes_fill_info_dict_nom)
                             hout[dense_axis_name+'_up'].fill(**axes_fill_info_dict_up)
                             hout[dense_axis_name+'_down'].fill(**axes_fill_info_dict_down)
 
