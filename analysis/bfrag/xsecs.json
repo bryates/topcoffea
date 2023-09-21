@@ -1,5 +1,7 @@
 {
 "ttbar"        : 832,
+"TTToSemiLeptonic" : 364.35080448,
+"TTTo2L2Nu"    : 87.31483776,
 "ttWlnu" :    0.2043,
 "ttWqq" :     0.4062,
 "ttZqq"   :   0.5297,
