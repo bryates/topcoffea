@@ -193,7 +193,10 @@ if __name__ == '__main__':
     nevts_total = 0
     for sname in samplesdict.keys():
         redirector = samplesdict[sname]['redirector']
-        year = '20'+sname.split('_')[-1]
+        year = sname.split('_')[-1].replace('20', '')
+        if len(year) > 2 and 'APV' not in year:
+            year = year[:2]
+        year = '20'+year
         samplesdict[sname]['year'] = year
         flist[sname] = [(redirector+f) for f in samplesdict[sname]['files']]
         samplesdict[sname]['xsec'] = get_xsec('_'.join(sname.split('_')[:-1]))
