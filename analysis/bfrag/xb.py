@@ -56,7 +56,7 @@ class AnalysisProcessor(processor.ProcessorABC):
         self.jpsi_mass_bins = np.linspace(2.8, 3.4, 60)
         self.d0_mass_bins = np.linspace(1.7, 2.0, 60)
         self.xb_bins = np.linspace(0, 1, 10)
-        #self.systematics = ['nominal', 'FSRup', 'FSRdown', 'ISRup', 'ISRdown']
+        self.systematics = ['nominal', 'FSRup', 'FSRdown', 'ISRup', 'ISRdown']
 
         dataset_axis = hist.axis.StrCategory(name="dataset", label="", categories=[], growth=True)
         ht_axis = hist.axis.Regular(name="ht", label="$H_{\mathrm{T}}$ [GeV]", bins=30, start=0, stop=300)
@@ -93,52 +93,54 @@ class AnalysisProcessor(processor.ProcessorABC):
         cos2D_axis = hist.axis.Regular(name='cos2D', label='Decay opening angle', bins=100, start=-1, stop=1)
         nmeson_axis = hist.axis.Regular(name='nmeson', label='Decay opening angle', bins=10, start=0, stop=10)
         ctau_axis = hist.axis.Regular(name='ctau', label='Meson time of flight significance', bins=110, start=-10, stop=100)
+        cut_axis = hist.axis.StrCategory(name='cut', categories=[],growth=True)
         systematic_axis = hist.axis.StrCategory(name='systematic', categories=['nominal'],growth=True)
         self.output = processor.dict_accumulator({
-            'ht': hist.Hist(dataset_axis, meson_axis, ht_axis, systematic_axis),
-            'j_pt_ch': hist.Hist(dataset_axis, meson_axis, j_pt_ch_axis, systematic_axis),
-            'j0pt': hist.Hist(dataset_axis, meson_axis, jpt_axis, systematic_axis),
-            'b0pt': hist.Hist(dataset_axis, meson_axis, bpt_axis, systematic_axis),
-            'l0pt': hist.Hist(dataset_axis, meson_axis, lpt_axis, systematic_axis),
-            'D0pt': hist.Hist(dataset_axis, meson_axis, D0pt_axis, systematic_axis),
-            'D0pipt': hist.Hist(dataset_axis, meson_axis, D0pipt_axis, systematic_axis),
-            'D0kpt': hist.Hist(dataset_axis, meson_axis, D0kpt_axis, systematic_axis),
-            'jet_id'  : hist.Hist(dataset_axis, meson_axis, jet_axis, systematic_axis),
-            'xb_mass_jpsi'  : hist.Hist(dataset_axis, meson_axis, xb_axis, jpsi_mass_axis, flav_axis, systematic_axis),
-            'xb_mass_d0mu'  : hist.Hist(dataset_axis, meson_axis, xb_axis, d0_mass_axis, flav_axis, systematic_axis),
-            'xb_mass_d0'  : hist.Hist(dataset_axis, meson_axis, xb_axis, d0_mass_axis, flav_axis, systematic_axis),
-            'xb_mass_jpsi_nom'  : hist.Hist(dataset_axis, meson_axis, xb_axis, jpsi_mass_axis, flav_axis, systematic_axis),
-            'xb_mass_d0mu_nom'  : hist.Hist(dataset_axis, meson_axis, xb_axis, d0_mass_axis, flav_axis, systematic_axis),
-            'xb_mass_d0_nom'  : hist.Hist(dataset_axis, meson_axis, xb_axis, d0_mass_axis, flav_axis, systematic_axis),
-            'xb_mass_jpsi_up'  : hist.Hist(dataset_axis, meson_axis, xb_axis, jpsi_mass_axis, flav_axis, systematic_axis),
-            'xb_mass_d0mu_up'  : hist.Hist(dataset_axis, meson_axis, xb_axis, d0_mass_axis, flav_axis, systematic_axis),
-            'xb_mass_d0_up'  : hist.Hist(dataset_axis, meson_axis, xb_axis, d0_mass_axis, flav_axis, systematic_axis),
-            'xb_mass_jpsi_down'  : hist.Hist(dataset_axis, meson_axis, xb_axis, jpsi_mass_axis, flav_axis, systematic_axis),
-            'xb_mass_d0mu_down'  : hist.Hist(dataset_axis, meson_axis, xb_axis, d0_mass_axis, flav_axis, systematic_axis),
-            'xb_mass_d0_down'  : hist.Hist(dataset_axis, meson_axis, xb_axis, d0_mass_axis, flav_axis, systematic_axis),
-            'xb_mass_d0_pik'  : hist.Hist(dataset_axis, meson_axis, xb_axis, d0_mass_axis, systematic_axis),
-            'xb_mass_d0_kk'  : hist.Hist(dataset_axis, meson_axis, xb_axis, d0_mass_axis, systematic_axis),
-            'xb_mass_d0_pipi'  : hist.Hist(dataset_axis, meson_axis, xb_axis, d0_mass_axis, systematic_axis),
-            'xb_mass_d0_unmatched'  : hist.Hist(dataset_axis, meson_axis, xb_axis, d0_mass_axis, systematic_axis),
-            'xb_mass_d0_gen'  : hist.Hist(dataset_axis, meson_axis, pi_gen_axis, k_gen_axis, pi_mother_gen_axis, k_mother_gen_axis, xb_axis, d0_mass_axis, systematic_axis),
-            'xb_jpsi'  : hist.Hist(dataset_axis, xb_jpsi_axis, systematic_axis),
-            'xb_d0'  : hist.Hist(dataset_axis, xb_axis, systematic_axis),
-            'xb_d0mu'  : hist.Hist(dataset_axis, xb_axis, systematic_axis),
-            'xb_ch'  : hist.Hist(dataset_axis, xb_ch_axis, systematic_axis),
-            'pdgid'  : hist.Hist(dataset_axis, pdgid_axis, systematic_axis),
-            'd0'  : hist.Hist(dataset_axis, d0_axis, systematic_axis),
-            'njets' : hist.Hist(dataset_axis, meson_axis, njets_axis, systematic_axis),
-            'nbjets' : hist.Hist(dataset_axis, meson_axis, nbjets_axis, systematic_axis),
-            'nleps' : hist.Hist(dataset_axis, meson_axis, nleps_axis, systematic_axis),
-            'jpsi_mass': hist.Hist(dataset_axis, meson_axis, jpsi_mass_axis, systematic_axis),
-            'd0_mass': hist.Hist(dataset_axis, meson_axis, d0_mass_axis, systematic_axis),
-            'cos2D': hist.Hist(dataset_axis, cos2D_axis, meson_axis, systematic_axis),
-            'nmeson': hist.Hist(dataset_axis, nmeson_axis, meson_axis, systematic_axis),
-            'ctau': hist.Hist(dataset_axis, ctau_axis, meson_axis, flav_axis, systematic_axis),
-            'vtx_mass_d0' : hist.Hist(dataset_axis, hist.axis.Regular(name='vtx', label='Vertex prob.', bins=100, start=0, stop=.1), d0_mass_axis, systematic_axis),
-            'chi_mass_d0' : hist.Hist(dataset_axis, hist.axis.Regular(name='chi', label='$\chi^2$ vtx', bins=100, start=0, stop=5), d0_mass_axis, systematic_axis),
-            'vtx_mass_jpsi' : hist.Hist(dataset_axis, hist.axis.Regular(name='vtx', label='Vertex prob.', bins=100, start=0, stop=.1), jpsi_mass_axis, systematic_axis),
-            'chi_mass_jpsi' : hist.Hist(dataset_axis, hist.axis.Regular(name='chi', label='$\chi^2$ vtx', bins=100, start=0, stop=5), jpsi_mass_axis, systematic_axis),
+            'ht': hist.Hist(dataset_axis, meson_axis, ht_axis, cut_axis, systematic_axis),
+            'j_pt_ch': hist.Hist(dataset_axis, meson_axis, j_pt_ch_axis, cut_axis, systematic_axis),
+            'j0pt': hist.Hist(dataset_axis, meson_axis, jpt_axis, cut_axis, systematic_axis),
+            'b0pt': hist.Hist(dataset_axis, meson_axis, bpt_axis, cut_axis, systematic_axis),
+            'l0pt': hist.Hist(dataset_axis, meson_axis, lpt_axis, cut_axis, systematic_axis),
+            'D0pt': hist.Hist(dataset_axis, meson_axis, D0pt_axis, cut_axis, systematic_axis),
+            'D0pipt': hist.Hist(dataset_axis, meson_axis, D0pipt_axis, cut_axis, systematic_axis),
+            'D0kpt': hist.Hist(dataset_axis, meson_axis, D0kpt_axis, cut_axis, systematic_axis),
+            'jet_id'  : hist.Hist(dataset_axis, meson_axis, jet_axis, cut_axis, systematic_axis),
+            'xb_mass_jpsi'  : hist.Hist(dataset_axis, meson_axis, xb_axis, jpsi_mass_axis, flav_axis, cut_axis, systematic_axis),
+            'xb_mass_d0mu'  : hist.Hist(dataset_axis, meson_axis, xb_axis, d0_mass_axis, flav_axis, cut_axis, systematic_axis),
+            'xb_mass_d0'  : hist.Hist(dataset_axis, meson_axis, xb_axis, d0_mass_axis, flav_axis, cut_axis, systematic_axis),
+            'xb_mass_jpsi_nom'  : hist.Hist(dataset_axis, meson_axis, xb_axis, jpsi_mass_axis, flav_axis, cut_axis, systematic_axis),
+            'xb_mass_d0mu_nom'  : hist.Hist(dataset_axis, meson_axis, xb_axis, d0_mass_axis, flav_axis, cut_axis, systematic_axis),
+            'xb_mass_d0_nom'  : hist.Hist(dataset_axis, meson_axis, xb_axis, d0_mass_axis, flav_axis, cut_axis, systematic_axis),
+            'xb_mass_jpsi_up'  : hist.Hist(dataset_axis, meson_axis, xb_axis, jpsi_mass_axis, flav_axis, cut_axis, systematic_axis),
+            'xb_mass_d0mu_up'  : hist.Hist(dataset_axis, meson_axis, xb_axis, d0_mass_axis, flav_axis, cut_axis, systematic_axis),
+            'xb_mass_d0_up'  : hist.Hist(dataset_axis, meson_axis, xb_axis, d0_mass_axis, flav_axis, cut_axis, systematic_axis),
+            'xb_mass_jpsi_down'  : hist.Hist(dataset_axis, meson_axis, xb_axis, jpsi_mass_axis, flav_axis, cut_axis, systematic_axis),
+            'xb_mass_d0mu_down'  : hist.Hist(dataset_axis, meson_axis, xb_axis, d0_mass_axis, flav_axis, cut_axis, systematic_axis),
+            'xb_mass_d0_down'  : hist.Hist(dataset_axis, meson_axis, xb_axis, d0_mass_axis, flav_axis, cut_axis, systematic_axis),
+            'xb_mass_d0_pik'  : hist.Hist(dataset_axis, meson_axis, xb_axis, d0_mass_axis, cut_axis, systematic_axis),
+            'xb_mass_d0_kk'  : hist.Hist(dataset_axis, meson_axis, xb_axis, d0_mass_axis, cut_axis, systematic_axis),
+            'xb_mass_d0_pipi'  : hist.Hist(dataset_axis, meson_axis, xb_axis, d0_mass_axis, cut_axis, systematic_axis),
+            'xb_mass_d0_unmatched'  : hist.Hist(dataset_axis, meson_axis, xb_axis, d0_mass_axis, cut_axis, systematic_axis),
+            'xb_mass_d0_gen'  : hist.Hist(dataset_axis, meson_axis, pi_gen_axis, k_gen_axis, pi_mother_gen_axis, k_mother_gen_axis, xb_axis, d0_mass_axis, cut_axis, systematic_axis),
+            'xb_jpsi'  : hist.Hist(dataset_axis, xb_jpsi_axis, cut_axis, systematic_axis),
+            'xb_d0'  : hist.Hist(dataset_axis, xb_axis, cut_axis, systematic_axis),
+            'xb_d0mu'  : hist.Hist(dataset_axis, xb_axis, cut_axis, systematic_axis),
+            'xb_ch'  : hist.Hist(dataset_axis, xb_ch_axis, cut_axis, systematic_axis),
+            'pdgid'  : hist.Hist(dataset_axis, pdgid_axis, cut_axis, systematic_axis),
+            'd0'  : hist.Hist(dataset_axis, d0_axis, cut_axis, systematic_axis),
+            'njets' : hist.Hist(dataset_axis, meson_axis, njets_axis, cut_axis, systematic_axis),
+            'nbjets' : hist.Hist(dataset_axis, meson_axis, nbjets_axis, cut_axis, systematic_axis),
+            'nleps' : hist.Hist(dataset_axis, meson_axis, nleps_axis, cut_axis, systematic_axis),
+            'jpsi_mass': hist.Hist(dataset_axis, meson_axis, jpsi_mass_axis, cut_axis, systematic_axis),
+            'd0_mass': hist.Hist(dataset_axis, meson_axis, d0_mass_axis, cut_axis, systematic_axis),
+            'cos2D': hist.Hist(dataset_axis, cos2D_axis, meson_axis, cut_axis, systematic_axis),
+            'nmeson': hist.Hist(dataset_axis, nmeson_axis, meson_axis, cut_axis, systematic_axis),
+            'ctau': hist.Hist(dataset_axis, ctau_axis, meson_axis, flav_axis, cut_axis, systematic_axis),
+            'nvtx' : hist.Hist(dataset_axis, meson_axis, hist.axis.Regular(name='nvtx', label='N vtx', bins=100, start=0, stop=100), cut_axis, systematic_axis),
+            'vtx_mass_d0' : hist.Hist(dataset_axis, hist.axis.Regular(name='vtx', label='Vertex prob.', bins=100, start=0, stop=.1), d0_mass_axis, cut_axis, systematic_axis),
+            'chi_mass_d0' : hist.Hist(dataset_axis, hist.axis.Regular(name='chi', label='$\chi^2$ vtx', bins=100, start=0, stop=5), d0_mass_axis, cut_axis, systematic_axis),
+            'vtx_mass_jpsi' : hist.Hist(dataset_axis, hist.axis.Regular(name='vtx', label='Vertex prob.', bins=100, start=0, stop=.1), jpsi_mass_axis, cut_axis, systematic_axis),
+            'chi_mass_jpsi' : hist.Hist(dataset_axis, hist.axis.Regular(name='chi', label='$\chi^2$ vtx', bins=100, start=0, stop=5), jpsi_mass_axis, cut_axis, systematic_axis),
             'sumw'  : processor.defaultdict_accumulator(float),
             'sumw2' : processor.defaultdict_accumulator(float),
             #'sumw_syst' : hist.Hist(hist.axis.Regular(name='weight', label='weight', bins=2, start=0, stop=2), systematic_axis),
@@ -242,8 +244,9 @@ class AnalysisProcessor(processor.ProcessorABC):
             sow_renormfactDown = -1
 
         datasets = ["SingleMuon", "SingleElectron", "EGamma", "MuonEG", "DoubleMuon", "DoubleElectron", "DoubleEG"]
-        for d in datasets:
-            if d in dataset: dataset = dataset.split('_')[1]
+        #for d in datasets:
+        #    if d in dataset: dataset = dataset.split('_')[0]
+        if any(d in dataset for d in datasets): dataset = dataset.split('_')[1]
 
         # Set the sampleType (used for MC matching requirement)
         sampleType = "prompt"
@@ -278,6 +281,7 @@ class AnalysisProcessor(processor.ProcessorABC):
         AttachMuonSF(mu,year=year)
         leptons = ak.with_name(ak.concatenate([ele, mu], axis=1), 'PtEtaPhiMCandidate')
         leptons = leptons[ak.argsort(leptons.pt, axis=1, ascending=False)]
+        leptons = mu
         events["leptons"] = leptons
         llpairs = ak.combinations(leptons, 2, fields=["l0","l1"])
         events["minMllAFAS"] = ak.min( (llpairs.l0+llpairs.l1).mass, axis=-1)
@@ -449,9 +453,21 @@ class AnalysisProcessor(processor.ProcessorABC):
                 leta24 = np.abs(leps_eta) < 2.4
                 jeta24 = np.abs(jets.eta[ak.argmax(jets.pt, axis=-1, keepdims=True)]) < 2.4
                 leta24 = np.abs(leptons.eta[ak.argmax(leptons.pt, axis=-1, keepdims=True)]) < 2.4
+                lpt25  = ak.fill_none(ak.pad_none(leptons.pt > 25, 1), False)
+                lpt20  = ak.fill_none(ak.pad_none(leptons.pt > 20, 1), False)
+                lpt25 = ak.num(lpt25) == 1
+                lpt20 = ak.num(lpt20) > 1
+                lpt = lpt25 ^ lpt20
+                #lpt = ak.fill_none(ak.firsts(leptons.pt) < 0, False)
+                #lpt = ak.where([nLep[lpt25] == 1], lpt25, lpt)
+                #print(lpt, '\n\n\n\n')
+                #print((lpt & (nLep[lpt20] > 1)) | (lpt & (nLep[lpt25] == 1)), '\n\n\n\n')
                 #is_ttbar = (ak.num(jets)>4)&(ak.num(bjets_tight)>1)&((ak.num(ele)>1)|(ak.num(mu)>1))# & (pad_jets[:,0].pt>30)# & ((pad_ele[:,0].pt>25) | (pad_mu[:,0].pt>25))#&(ht>180)
                 #return QCD & DY & (nJets >= 1) & (nBJets >=1) & (nLep >= 1) & bpt30 & jpt30 & lpt# & jeta24 & leta24
-                return (nJets >= 1) & (nBJets >=1) & (nLep >= 1) * ak.any(goodJet, axis=-1) & ak.any(goodBJet, axis=-1)
+                #FIXME
+                return (nJets >= 3) & (nBJets >=1) & (nLep >= 1) & ak.any(goodJet, axis=-1) & ak.any(goodBJet, axis=-1)
+                #return (nJets >= 1) & (nBJets >=1) & (nLep >= 1) & lpt & ak.any(goodJet, axis=-1) & ak.any(goodBJet, axis=-1)
+                #return (nJets >= 1) & (nBJets >=1) & (nLep >= 1) * ak.any(goodJet, axis=-1) & ak.any(goodBJet, axis=-1)
 
             # Medium DeepJet WP
             if year == "2017":
@@ -479,19 +495,21 @@ class AnalysisProcessor(processor.ProcessorABC):
                 btagwpt = get_param("btag_wp_tight_UL16APV")
             else:
                 raise ValueError(f"Error: Unknown year \"{year}\".")
-            isBtagJetsTight = (jets[charm_cand.jetIdx].btagDeepFlavB > btagwpt)
             #isBtagJetsTight = (goodJets.btagDeepFlavB > btagwpt)
+            goodJet = jets[charm_cand.jetIdx].isGood & jets[charm_cand.jetIdx].isClean
+            #isBtagJetsTight = (jets[charm_cand.jetIdx].btagDeepFlavB > btagwpt)
+            isBtagJetsTight = (goodJets.btagDeepFlavB > btagwpt)
             isNotBtagJetsTight = np.invert(isBtagJetsTight)
 
             #bjets_tight = jets[isBtagJetsTight & jets.isGood & jets.isClean]
-            #bjets_tight = goodJets[isBtagJetsTight]
-            bjets_tight = jets[charm_cand.jetIdx][isBtagJetsTight]
-            bjets_tight = bjets_tight[bjets_tight.isGood & bjets_tight.isClean]
+            bjets_tight = goodJets[isBtagJetsTight]
+            #bjets_tight = jets[charm_cand.jetIdx][isBtagJetsTight]
+            #bjets_tight = bjets_tight[bjets_tight.isGood & bjets_tight.isClean]
             b0pt = ak.sort(bjets_tight.pt, axis=1, ascending=False)
             nbj  = ak.num(ak.fill_none(ak.pad_none(ak.sort(bjets_tight.pt, axis=1, ascending=False), 1), 0))
-            goodJet = jets[charm_cand.jetIdx].isGood & jets[charm_cand.jetIdx].isClean
             #goodJet = jets[charm_cand.jetIdx].isGood
-            events['is_ttbar'] = is_ttbar(goodJets, bjets_tight, mu, ele, leptons, met)
+            events['is_ttbar'] = is_ttbar(goodJets, bjets_tight, mu, ele, mu, met)
+            #events['is_ttbar'] = is_ttbar(goodJets, bjets_tight, mu, ele, leptons, met)
 
 
             #################### Add variables into event object so that they persist ####################
@@ -504,23 +522,22 @@ class AnalysisProcessor(processor.ProcessorABC):
             if not isData:
 
                 # Btag SF following 1a) in https://twiki.cern.ch/twiki/bin/viewauth/CMS/BTagSFMethods
-                isBtagJetsLooseNotMedium = (isBtagJetsLoose & isNotBtagJetsMedium)
-                bJetSF   = [GetBTagSF(goodJets, year, 'LOOSE'),GetBTagSF(goodJets, year, 'TIGHT')]
-                bJetEff  = [GetBtagEff(goodJets, year, 'loose'),GetBtagEff(goodJets, year, 'tight')]
-                bJetEff_data   = [bJetEff[0]*bJetSF[0],bJetEff[1]*bJetSF[1]]
-                pMC     = ak.prod(bJetEff[1]       [isBtagJetsMedium], axis=-1) * ak.prod((bJetEff[0]       [isBtagJetsLooseNotMedium] - bJetEff[1]       [isBtagJetsLooseNotMedium]), axis=-1) * ak.prod((1-bJetEff[0]       [isNotBtagJetsLoose]), axis=-1)
+                bJetSF   = GetBTagSF(goodJets, year, 'TIGHT')
+                bJetEff  = GetBtagEff(goodJets, year, 'tight')
+                bJetEff_data   = bJetEff*bJetSF
+                pMC     = ak.prod(bJetEff       [isBtagJetsTight], axis=-1) * ak.prod((1-bJetEff       [~isBtagJetsTight]), axis=-1)
                 pMC     = ak.where(pMC==0,1,pMC) # removeing zeroes from denominator...
-                pData   = ak.prod(bJetEff_data[1]  [isBtagJetsMedium], axis=-1) * ak.prod((bJetEff_data[0]  [isBtagJetsLooseNotMedium] - bJetEff_data[1]  [isBtagJetsLooseNotMedium]), axis=-1) * ak.prod((1-bJetEff_data[0]  [isNotBtagJetsLoose]), axis=-1)
+                pData   = ak.prod(bJetEff_data  [isBtagJetsTight], axis=-1) * ak.prod((1-bJetEff_data  [~isBtagJetsTight]), axis=-1)
                 weights_obj_base_for_kinematic_syst.add("btagSF", pData/pMC)
 
                 if self._do_systematics and syst_var=='nominal':
                     for b_syst in ["bc_corr","light_corr",f"bc_{year}",f"light_{year}"]:
-                        bJetSFUp = [GetBTagSF(goodJets, year, 'LOOSE', syst=b_syst)[0],GetBTagSF(goodJets, year, 'MEDIUM', syst=b_syst)[0]]
-                        bJetSFDo = [GetBTagSF(goodJets, year, 'LOOSE', syst=b_syst)[1],GetBTagSF(goodJets, year, 'MEDIUM', syst=b_syst)[1]]
-                        bJetEff_dataUp = [bJetEff[0]*bJetSFUp[0],bJetEff[1]*bJetSFUp[1]]
-                        bJetEff_dataDo = [bJetEff[0]*bJetSFDo[0],bJetEff[1]*bJetSFDo[1]]
-                        pDataUp = ak.prod(bJetEff_dataUp[1][isBtagJetsMedium], axis=-1) * ak.prod((bJetEff_dataUp[0][isBtagJetsLooseNotMedium] - bJetEff_dataUp[1][isBtagJetsLooseNotMedium]), axis=-1) * ak.prod((1-bJetEff_dataUp[0][isNotBtagJetsLoose]), axis=-1)
-                        pDataDo = ak.prod(bJetEff_dataDo[1][isBtagJetsMedium], axis=-1) * ak.prod((bJetEff_dataDo[0][isBtagJetsLooseNotMedium] - bJetEff_dataDo[1][isBtagJetsLooseNotMedium]), axis=-1) * ak.prod((1-bJetEff_dataDo[0][isNotBtagJetsLoose]), axis=-1)
+                        bJetSFUp = GetBTagSF(goodJets, year, 'TIGHT', syst=b_syst)[0]
+                        bJetSFDo = GetBTagSF(goodJets, year, 'TIGHT', syst=b_syst)[1]
+                        bJetEff_dataUp = bJetEff*bJetSFUp[0]
+                        bJetEff_dataDo = bJetEff*bJetSFDo
+                        pDataUp = ak.prod(bJetEff_dataUp[isBtagJetsTight], axis=-1) * ak.prod((1-bJetEff_dataUp[~isBtagJetsTight]), axis=-1)
+                        pDataDo = ak.prod(bJetEff_dataDo[isBtagJetsTight], axis=-1) * ak.prod((1-bJetEff_dataDo[~isBtagJetsTight]), axis=-1)
                         weights_obj_base_for_kinematic_syst.add(f"btagSF{b_syst}", events.nom, (pDataUp/pMC)/(pData/pMC),(pDataDo/pMC)/(pData/pMC))
 
                 # Trigger SFs
@@ -532,7 +549,7 @@ class AnalysisProcessor(processor.ProcessorABC):
 
             # Loop over categories and fill the dict
             weights_dict = {}
-            for ch_name in ["d0", "d0mu", "jpsi"]:
+            for ch_name in ["ttbar", "d0", "d0mu", "jpsi"]:
 
                 # For both data and MC
                 weights_dict[ch_name] = copy.deepcopy(weights_obj_base_for_kinematic_syst)
@@ -563,18 +580,38 @@ class AnalysisProcessor(processor.ProcessorABC):
 
             # Charm meson candidates from b-jets
             ctau_mask = ak.fill_none((charm_cand.vtx_l3d / charm_cand.vtx_el3d) > 10, False)
+            ctau_mask = ak.fill_none(ak.pad_none((charm_cand.vtx_l3d / charm_cand.vtx_el3d) > 10, 1), False)
             ctau = charm_cand.vtx_l3d / charm_cand.vtx_el3d
             chi2_mask = ak.fill_none((charm_cand.svprob>0.02) & (charm_cand.chi2/charm_cand.ndof<5), False)
             chi2_mask = charm_cand.chi2/charm_cand.ndof<5
+            chi2_mask = ak.fill_none(ak.pad_none(charm_cand.chi2/charm_cand.ndof<5, 1), False)
             chi2sort = ak.argsort(charm_cand.chi2/charm_cand.ndof, ascending=True)
             #ptsort = ak.argmax(charm_cand.fit_pt, axis=-1)
             ht_mask = ht > 180
             b_mask = goodJet & (jets[charm_cand.jetIdx].btagDeepFlavB > btagwpt)
+            b_mask = ak.fill_none(ak.pad_none(goodJet & (jets[charm_cand.jetIdx].btagDeepFlavB > btagwpt), 1), False)
             #b_mask = goodJets[charm_cand.jetIdx].btagDeepFlavB > btagwpt
             ptzmask = get_Z_peak_mask(leptons,15,flavor="os")
-            d0_mask = events.is_ttbar & b_mask & ht_mask & ctau_mask & chi2_mask & (charm_cand.jetIdx>-1) & (np.abs(charm_cand.meson_id) == 421)
-            ctau_low_mask = ak.fill_none((charm_cand.vtx_l3d / charm_cand.vtx_el3d) > 2, False)
-            jpsi_mask = events.is_ttbar & chi2_mask & ctau_low_mask & (charm_cand.jetIdx>-1) & (np.abs(charm_cand.meson_id) == 443)
+            cand_mask = ak.fill_none(ak.pad_none(charm_cand.jetIdx>-1, 1), False)
+            meson_id = ak.fill_none(ak.pad_none(copy.deepcopy(np.abs(charm_cand.meson_id)), 1), 0)
+            d0_mask = ak.fill_none(ak.pad_none(meson_id==421, 1), False)
+            #d0_mask = ak.fill_none(ak.pad_none(np.abs(charm_cand.meson_id) == 421, 1), False)
+            d0_mask_411 = ak.fill_none(ak.pad_none(meson_id==411, 1), False)
+            #d0_mask_411 = ak.fill_none(ak.pad_none(np.abs(charm_cand.meson_id) == 411, 1), False)
+            d0_mask = events.is_ttbar & b_mask & ht_mask & ctau_mask & chi2_mask & cand_mask & d0_mask # FIXME typo data files, used 411 instead of 421
+            d0_mask_411 = events.is_ttbar & b_mask & ht_mask & ctau_mask & chi2_mask & cand_mask & d0_mask_411 # FIXME typo data files, used 411 instead of 421
+            if isData:
+                d0_mask = d0_mask_411
+            mcount = ak.num(meson_id)
+            meson_id = ak.flatten(meson_id)
+            meson_id = ak.where(meson_id==411, 421, meson_id)
+            #meson_id = ak.where(ak.flatten(d0_mask), 421, meson_id)
+            meson_id = ak.unflatten(meson_id, mcount)
+            d0_mask = ak.fill_none(ak.pad_none(meson_id==421, 1), False)
+            d0_mask = events.is_ttbar & b_mask & ht_mask & ctau_mask & chi2_mask & cand_mask & d0_mask # FIXME typo data files, used 411 instead of 421
+            ctau_low_mask = ak.fill_none(ak.pad_none((charm_cand.vtx_l3d / charm_cand.vtx_el3d) > 2, 1), False)
+            jpsi_mask = ak.fill_none(ak.pad_none(np.abs(charm_cand.meson_id) == 443, 1), False)
+            jpsi_mask = events.is_ttbar & chi2_mask & ctau_low_mask & cand_mask & jpsi_mask
             #d0_mask = events.is_ttbar & ptzmask & ht_mask & ctau_mask & chi2_mask & (charm_cand.jetIdx>-1) & (np.abs(charm_cand.meson_id) == 421)
             #jpsi_mask = events.is_ttbar & ptzmask & ctau_mask & chi2_mask & (charm_cand.jetIdx>-1) & (np.abs(charm_cand.meson_id) == 443)
             mass = charm_cand.fit_mass
@@ -593,15 +630,19 @@ class AnalysisProcessor(processor.ProcessorABC):
             maskpipi = ((abs(pi_gid)==211) & (abs(k_gid)==211))
 
             # D0 mu tagged
-            d0_mu_mask = events.is_ttbar & b_mask & ctau_mask & chi2_mask & (charm_cand.jetIdx>-1) & (np.abs(charm_cand.meson_id) == 421) & (np.abs(charm_cand.x_id)==13)
+            d0_mu_mask = ak.fill_none(ak.pad_none(np.abs(charm_cand.meson_id) == 421, 1), False)
+            d0_mu_mask_411 = ak.fill_none(ak.pad_none(np.abs(charm_cand.meson_id) == 411, 1), False)
+            mu_mask = ak.fill_none(ak.pad_none(np.abs(charm_cand.x_id)==13, 1), False)
+            d0_mu_mask = events.is_ttbar & b_mask & ctau_mask & chi2_mask & cand_mask & d0_mu_mask & mu_mask
+            d0_mu_mask_411 = events.is_ttbar & b_mask & ctau_mask & chi2_mask & cand_mask & d0_mu_mask_411 & mu_mask
+            if isData:
+                d0_mu_mask = d0_mu_mask_411
+            #d0_mu_mask = d0_mu_mask | d0_mu_mask_411
             d0_mu_mask = ptzmask & (np.abs(charm_cand.x_id)==13)
-            d0_mu_mask = ctau_low_mask & (np.abs(charm_cand.x_id)==13)
+            d0_mu_mask = ctau_low_mask & mu_mask
             #d0_mu_mask = events.is_ttbar & ctau_mask & chi2_mask & (charm_cand.jetIdx>-1) & np.abs(charm_cand.x_id)==13
             #d0_mu_mask = np.abs(charm_cand.x_id)==13
             musort = ak.argsort(charm_cand.x_pt, ascending=False, axis=-1)
-            meson_id = charm_cand.meson_id
-            mcount = ak.num(meson_id)
-            meson_id = copy.deepcopy(charm_cand.meson_id)
             meson_id = ak.flatten(meson_id)
             meson_id = ak.where(ak.flatten(d0_mu_mask), 42113, meson_id)
             meson_id = ak.unflatten(meson_id, mcount)
@@ -681,6 +722,7 @@ class AnalysisProcessor(processor.ProcessorABC):
             varnames["b0pt"]   = b0pt
             varnames["nbjets"] = nbj
             varnames["l0pt"]   = l0pt
+            varnames["nvtx"]   = events.PV.npvs
             varnames["nleps"]  = nl
 
 
@@ -688,9 +730,11 @@ class AnalysisProcessor(processor.ProcessorABC):
 
             # This dictionary keeps track of which selections go with which SR categories
             sr_cat_dict = {
+                "ttbar" : {
+                    "cuts" : events.is_ttbar & b_mask & pass_trg & cand_mask,# & chi2_mask,
+                },
                 "d0" : {
-                    "cuts" : d0_mask & pass_trg,# & chi2_mask,
-                    #"cuts" : d0_mask & ~d0_mu_mask & pass_trg,# & chi2_mask,
+                    "cuts" : d0_mask & ~d0_mu_mask & pass_trg,# & chi2_mask,
                     "num" : nd0,
                 },
                 "d0mu" : {
@@ -705,15 +749,15 @@ class AnalysisProcessor(processor.ProcessorABC):
 
             lep_cat_dict = {
                 "mu" : 
-                    (ak.num(mu[mu.pt > 26])==1) & (ak.num(ele) == 0),
-                "ele" : 
-                    (ak.num(mu) == 0) & (ak.num(ele[ele.pt>35]) == 1),
-                "mm" : 
-                    (ak.num(mu[mu.pt>20]) == 2) & (ak.num(ele) == 0) & (events.minMllAFAS > 20) & (met.pt > 20),
-                "ee" : 
-                    (ak.num(mu) == 0) & (ak.num(ele[ele.pt>30]) == 2) & (events.minMllAFAS > 20) & (met.pt > 20),
-                "em" : 
-                    (ak.num(mu[mu.pt>20]) == 1) & (ak.num(ele[ele.pt>30]) == 1) & (events.minMllAFAS > 20),
+                    (ak.num(mu[mu.pt > 26])==1) & (ak.num(ele) == 0) & (ak.num(mu[mu.pt < 26]) == 0),
+                #"ele" : 
+                #    (ak.num(mu) == 0) & (ak.num(ele[ele.pt > 35]) == 1) & (ak.num(ele[ele.pt < 35]) == 0),
+                #"mm" : 
+                #    (ak.num(mu[mu.pt > 20]) == 2) & (ak.num(ele) == 0) & (events.minMllAFAS > 20) & (met.pt > 20),
+                #"ee" : 
+                #    (ak.num(mu) == 0) & (ak.num(ele[ele.pt > 30]) == 2) & (events.minMllAFAS > 20) & (met.pt > 20),
+                #"em" : 
+                #    (ak.num(mu[mu.pt > 20]) == 1) & (ak.num(ele[ele.pt > 30]) == 1) & (events.minMllAFAS > 20),
             }
 
             # This dictionary keeps track of which selections go with which CR categories
@@ -807,13 +851,15 @@ class AnalysisProcessor(processor.ProcessorABC):
                 if (wgt_fluct == "nominal") or (wgt_fluct in obj_correction_syst_lst):
                     # In the case of "nominal", or the jet energy systematics, no weight systematic variation is used
                     syst_weight = np.nan_to_num(weights_object.weight(None) / (xsec * lumi), nan=0, posinf=0, neginf=0 )
-                    hout['sumw'][dataset]  = ak.sum(syst_weight, axis=0)
-                    hout['sumw2'][dataset] = ak.sum(np.square(syst_weight), axis=0)
+                    if not isData:
+                        hout['sumw'][dataset]  = ak.sum(syst_weight, axis=0)
+                        hout['sumw2'][dataset] = ak.sum(np.square(syst_weight), axis=0)
                 else:
                     syst_weight = weights_object.weight(wgt_fluct) / (xsec * lumi)
-                    if f'sumw{wgt_fluct}' not in self.output:
-                        self.output[f'sumw{wgt_fluct}'] = processor.defaultdict_accumulator(float)
-                    self.output[f'sumw{wgt_fluct}'] = ak.sum(np.nan_to_num(syst_weight, nan=0, posinf=0, neginf=0), axis=0)
+                    if not isData:
+                        if f'sumw{wgt_fluct}' not in self.output:
+                            self.output[f'sumw{wgt_fluct}'] = processor.defaultdict_accumulator(float)
+                        self.output[f'sumw{wgt_fluct}'] = ak.sum(np.nan_to_num(syst_weight, nan=0, posinf=0, neginf=0), axis=0)
 
             # Loop over the hists we want to fill
             for dense_axis_name, dense_axis_vals in varnames.items():
@@ -870,6 +916,9 @@ class AnalysisProcessor(processor.ProcessorABC):
                                 all_cuts_mask = (all_cuts_mask & ecut_mask)
 
                             # Weights
+                            if cat_chan == 'ttbar':
+                                all_cuts_mask = ak.fill_none(ak.fill_none(ak.pad_none(all_cuts_mask, 1), False), False, axis=0)
+                                #weights_flat = np.nan_to_num(weight[all_cuts_mask], nan=0, posinf=0, neginf=0)
                             weights_flat = np.nan_to_num(weight[ak.fill_none(ak.any(all_cuts_mask, -1), False)], nan=0, posinf=0, neginf=0)
 
                             # Fill the histos
@@ -877,14 +926,14 @@ class AnalysisProcessor(processor.ProcessorABC):
                             #if 'mu' in dense_axis_name:
                             #    sort = musort
                             if 'xb_mass' in dense_axis_name:
-                                xb_val       = ak.flatten(ak.firsts(dense_axis_vals[0][sort][all_cuts_mask], axis=-1), 0)
-                                mass_val     = ak.flatten(ak.firsts(dense_axis_vals[1][sort][all_cuts_mask], axis=-1), 0)
-                                xb_gen       = copy.deepcopy(ak.flatten(ak.firsts(dense_axis_vals[0][sort][all_cuts_mask], axis=-1), 0))
-                                tmp          = ak.pad_none(ak.flatten(ak.firsts(dense_axis_vals[2][sort][all_cuts_mask], axis=-1), 0), len(xb_gen), clip=True, axis=0)
+                                xb_val       = ak.flatten(ak.firsts(dense_axis_vals[0][all_cuts_mask], axis=-1), 0)
+                                mass_val     = ak.flatten(ak.firsts(dense_axis_vals[1][all_cuts_mask], axis=-1), 0)
+                                xb_gen       = copy.deepcopy(ak.flatten(ak.firsts(dense_axis_vals[0][all_cuts_mask], axis=-1), 0))
+                                tmp          = ak.pad_none(ak.flatten(ak.firsts(dense_axis_vals[2][all_cuts_mask], axis=-1), 0), len(xb_gen), clip=True, axis=0)
                                 # Use gen xb value when possible
                                 xb_gen       = ak.where(tmp>0, tmp, xb_gen)
-                                meson_id_val = ak.flatten(ak.firsts(meson_id[sort][all_cuts_mask], axis=-1), 0)
-                                jet_flav_val = ak.flatten(ak.firsts(jet_flav[sort][all_cuts_mask], axis=-1), 0)
+                                meson_id_val = ak.flatten(ak.firsts(meson_id[all_cuts_mask], axis=-1), 0)
+                                jet_flav_val = ak.flatten(ak.firsts(jet_flav[all_cuts_mask], axis=-1), 0)
                                 #FIXME use gen values
                                 xbNom  = np.interp(ak.fill_none(xb_gen, -1), xb_x, xb_nom)
                                 xbUp   = np.interp(ak.fill_none(xb_gen, -1), xb_x, xb_up)
@@ -894,8 +943,9 @@ class AnalysisProcessor(processor.ProcessorABC):
                                     "mass"          : mass_val,
                                     "meson_id"      : meson_id_val,
                                     "jet_flav"      : jet_flav_val,
-                                    "dataset"       : dataset, #ak.Array([dataset] * ak.num(meson_id[sort][all_cuts_mask], axis=0)),
-                                    "systematic"    : wgt_fluct, #ak.Array([wgt_fluct] * ak.num(meson_id[sort][all_cuts_mask], axis=0)),
+                                    "dataset"       : dataset, #ak.Array([dataset] * ak.num(meson_id[all_cuts_mask], axis=0)),
+                                    "cut"           : cat_chan,
+                                    "systematic"    : wgt_fluct, #ak.Array([wgt_fluct] * ak.num(meson_id[all_cuts_mask], axis=0)),
                                     "weight"        : weights_flat,
                                 }
                                 axes_fill_info_dict_nom = {
@@ -903,27 +953,30 @@ class AnalysisProcessor(processor.ProcessorABC):
                                     "mass"          : mass_val,
                                     "meson_id"      : meson_id_val,
                                     "jet_flav"      : jet_flav_val,
-                                    "dataset"       : dataset, #ak.Array([dataset] * ak.num(meson_id[sort][all_cuts_mask], axis=0)),
-                                    "systematic"    : wgt_fluct, #ak.Array([wgt_fluct] * ak.num(meson_id[sort][all_cuts_mask], axis=0)),
-                                    "weight"        : weights_flat*xbNom,#[sort][all_cuts_mask],
+                                    "dataset"       : dataset, #ak.Array([dataset] * ak.num(meson_id[all_cuts_mask], axis=0)),
+                                    "cut"           : cat_chan,
+                                    "systematic"    : wgt_fluct, #ak.Array([wgt_fluct] * ak.num(meson_id[all_cuts_mask], axis=0)),
+                                    "weight"        : weights_flat*xbNom,#[all_cuts_mask],
                                 }
                                 axes_fill_info_dict_up = {
                                     "xb"            : xb_val,
                                     "mass"          : mass_val,
                                     "meson_id"      : meson_id_val,
                                     "jet_flav"      : jet_flav_val,
-                                    "dataset"       : dataset, #ak.Array([dataset] * ak.num(meson_id[sort][all_cuts_mask], axis=0)),
-                                    "systematic"    : wgt_fluct, #ak.Array([wgt_fluct] * ak.num(meson_id[sort][all_cuts_mask], axis=0)),
-                                    "weight"        : weights_flat*xbUp,#[sort][all_cuts_mask],
+                                    "dataset"       : dataset, #ak.Array([dataset] * ak.num(meson_id[all_cuts_mask], axis=0)),
+                                    "cut"           : cat_chan,
+                                    "systematic"    : wgt_fluct, #ak.Array([wgt_fluct] * ak.num(meson_id[all_cuts_mask], axis=0)),
+                                    "weight"        : weights_flat*xbUp,#[all_cuts_mask],
                                 }
                                 axes_fill_info_dict_down = {
                                     "xb"            : xb_val,
                                     "mass"          : mass_val,
                                     "meson_id"      : meson_id_val,
                                     "jet_flav"      : jet_flav_val,
-                                    "dataset"       : dataset, #ak.Array([dataset] * ak.num(meson_id[sort][all_cuts_mask], axis=0)),
-                                    "systematic"    : wgt_fluct, #ak.Array([wgt_fluct] * ak.num(meson_id[sort][all_cuts_mask], axis=0)),
-                                    "weight"        : weights_flat*xbDown,#[sort][all_cuts_mask],
+                                    "dataset"       : dataset, #ak.Array([dataset] * ak.num(meson_id[all_cuts_mask], axis=0)),
+                                    "cut"           : cat_chan,
+                                    "systematic"    : wgt_fluct, #ak.Array([wgt_fluct] * ak.num(meson_id[all_cuts_mask], axis=0)),
+                                    "weight"        : weights_flat*xbDown,#[all_cuts_mask],
                                 }
 
                                 hout[dense_axis_name].fill(**axes_fill_info_dict)
@@ -931,36 +984,42 @@ class AnalysisProcessor(processor.ProcessorABC):
                                 hout[dense_axis_name+'_up'].fill(**axes_fill_info_dict_up)
                                 hout[dense_axis_name+'_down'].fill(**axes_fill_info_dict_down)
                             else:
-                                all_cuts_mask = ak.any(all_cuts_mask, axis=-1)
+                                #all_cuts_mask = ak.any(all_cuts_mask, axis=-1)
                                 if dense_axis_name[0] == 'n':
+                                    all_cuts_mask = ak.any(all_cuts_mask, axis=-1)
                                     axes_fill_info_dict = {
                                         dense_axis_name : ak.flatten(dense_axis_vals[all_cuts_mask], 0),
                                         "meson_id"      : ak.flatten(ak.firsts(meson_id[all_cuts_mask], axis=-1), 0),
-                                        "dataset"       : dataset, #ak.Array([dataset] * ak.num(meson_id[sort][all_cuts_mask], axis=0)),
-                                        "systematic"    : wgt_fluct, #ak.Array([wgt_fluct] * ak.num(meson_id[sort][all_cuts_mask], axis=0)),
+                                        "dataset"       : dataset, #ak.Array([dataset] * ak.num(meson_id[all_cuts_mask], axis=0)),
+                                        "cut"           : cat_chan,
+                                        "systematic"    : wgt_fluct, #ak.Array([wgt_fluct] * ak.num(meson_id[all_cuts_mask], axis=0)),
                                         "weight"        : weights_flat,
                                     }
                                 elif 'ht' in dense_axis_name:
+                                    all_cuts_mask = ak.any(all_cuts_mask, axis=-1)
                                     axes_fill_info_dict = {
                                         dense_axis_name : ak.flatten(dense_axis_vals[all_cuts_mask], 0),
                                         "meson_id"      : ak.flatten(ak.firsts(meson_id[all_cuts_mask], axis=-1), 0),
-                                        "dataset"       : dataset, #ak.Array([dataset] * ak.num(meson_id[sort][all_cuts_mask], axis=0)),
-                                        "systematic"    : wgt_fluct, #ak.Array([wgt_fluct] * ak.num(meson_id[sort][all_cuts_mask], axis=0)),
+                                        "dataset"       : dataset, #ak.Array([dataset] * ak.num(meson_id[all_cuts_mask], axis=0)),
+                                        "cut"           : cat_chan,
+                                        "systematic"    : wgt_fluct, #ak.Array([wgt_fluct] * ak.num(meson_id[all_cuts_mask], axis=0)),
                                         "weight"        : weights_flat,
                                     }
                                 else:
+                                    if '0pt' in dense_axis_name: all_cuts_mask = ak.any(all_cuts_mask, axis=-1)
                                     axes_fill_info_dict = {
                                         dense_axis_name : ak.flatten(ak.firsts(dense_axis_vals[all_cuts_mask], axis=-1), 0),
                                         "meson_id"      : ak.flatten(ak.firsts(meson_id[all_cuts_mask], axis=-1), 0),
-                                        "dataset"       : dataset, #ak.Array([dataset] * ak.num(meson_id[sort][all_cuts_mask], axis=0)),
-                                        "systematic"    : wgt_fluct, #ak.Array([wgt_fluct] * ak.num(meson_id[sort][all_cuts_mask], axis=0)),
+                                        "dataset"       : dataset, #ak.Array([dataset] * ak.num(meson_id[all_cuts_mask], axis=0)),
+                                        "cut"           : cat_chan,
+                                        "systematic"    : wgt_fluct, #ak.Array([wgt_fluct] * ak.num(meson_id[all_cuts_mask], axis=0)),
                                         "weight"        : weights_flat,
                                     }
                                 #if '0pt' in dense_axis_name or dense_axis_name[0] == 'n' or 'j_pt_ch' in dense_axis_name:
                                 #if 'xb_mass' not in dense_axis_name and 'ctau' not in dense_axis_name:
                                 #    axes_fill_info_dict.pop('meson_id')
                                 if 'ctau' in dense_axis_name:
-                                    jet_flav_val = ak.flatten(ak.firsts(jet_flav[sort][all_cuts_mask], axis=-1), 0)
+                                    jet_flav_val = ak.flatten(ak.firsts(jet_flav[all_cuts_mask], axis=-1), 0)
                                     axes_fill_info_dict['jet_flav'] = jet_flav_val
                                 if 'nmeson' in dense_axis_name:
                                     axes_fill_info_dict[dense_axis_name] = ak.num(dense_axis_vals[all_cuts_mask])
