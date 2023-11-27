@@ -196,11 +196,20 @@ if __name__ == '__main__':
         year = sname.split('_')[-1].replace('20', '')
         if len(year) > 2 and 'APV' not in year:
             year = year[:2]
+        elif 'APV' in year:
+            year = '16APV'
         year = '20'+year
+        #isData = 'Data' in sname
         samplesdict[sname]['year'] = year
         flist[sname] = [(redirector+f) for f in samplesdict[sname]['files']]
-        samplesdict[sname]['xsec'] = get_xsec('_'.join(sname.split('_')[:-1]))
+        xsec_name = sname
+        #xsec_name = sname.replace('Data13TeV_', '')
+        xsec_name = '_'.join(xsec_name.split('_')[:-1])
+        print(xsec_name)
+        samplesdict[sname]['xsec'] = get_xsec(xsec_name)
         samplesdict[sname]['isData'] = 'Data' in sname
+        #datasets = ["SingleMuon", "SingleElectron", "EGamma", "MuonEG", "DoubleMuon", "DoubleElectron", "DoubleEG"]
+        #samplesdict[sname]['isData'] = any(ds in sname for ds in datasets)
         # Print file info
         print('>> '+sname)
         print('   - isData?      : %s'   %('YES' if samplesdict[sname]['isData'] else 'NO'))
@@ -348,7 +357,8 @@ if __name__ == '__main__':
                             "schema": processor.NanoAODSchema,
                             "retries": 4,
                         },
-                        chunksize=100_000,
+                        chunksize=chunksize,
+                        #chunksize=100_000,
                         #maxchunks=args.max,
                     )
                     #save(output, f'/afs/cern.ch/user/b/byates/CMSSW_10_6_18/src/BFrag/BFrag/histos/{outname}.pkl')
