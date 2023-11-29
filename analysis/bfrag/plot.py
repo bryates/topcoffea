@@ -37,6 +37,12 @@ plt.style.use(hep.style.CMS)
 output = {}
 #data_list = ['EG','Muon', 'Electron']
 data_list = ["SingleMuon", "SingleElectron", "EGamma", "MuonEG", "DoubleMuon", "DoubleElectron", "DoubleEG"]
+ttbar = ['TTToSemiLeptonic_16', 'TTToSemiLeptonic_16APV', 'TTTo2L2Nu_16', 'TTTo2L2Nu_16APV']
+ttbar_semi = ['TTToSemiLeptonic_16', 'TTToSemiLeptonic_16APV']
+ttbar_di = ['TTTo2L2Nu_16', 'TTTo2L2Nu_16APV']
+ttbar = ['TTToSemiLeptonic_16', 'TTTo2L2Nu_16']
+ttbar_semi = ['TTToSemiLeptonic_16']
+ttbar_di = ['TTTo2L2Nu_16']
 
 # Load all pkl files into memory
 name = f'histos/coffea_dask.pkl'
@@ -287,15 +293,15 @@ def plot_mass(meson='d0'):
                 fout[f'histo/xb_mass_{meson_name}_{ibin}_{s}_cjet'] = out[{'xb': slice(hist.loc(xb_bins[ibin]), hist.loc(xb_bins[ibin+1]), sum), 'dataset': s, 'meson_id': hist.loc(pdgId), 'systematic': 'nominal', 'jet_flav': hist.loc(4)}]
                 fout[f'histo/xb_mass_{meson_name}_{ibin}_{s}_bjet'] = out[{'xb': slice(hist.loc(xb_bins[ibin]), hist.loc(xb_bins[ibin+1]), sum), 'dataset': s, 'meson_id': hist.loc(pdgId), 'systematic': 'nominal', 'jet_flav': hist.loc(5)}]
     for s in output[f'xb_mass_{meson_name}_nom'].axes['dataset']:
-        central = out[{'mass': sum, 'dataset': ['TTToSemiLeptonic_16'], 'meson_id': hist.loc(pdgId), 'systematic': 'nominal', 'jet_flav': hist.loc(5)}][{'dataset': sum}]
+        central = out[{'mass': sum, 'dataset': ttbar, 'meson_id': hist.loc(pdgId), 'systematic': 'nominal', 'jet_flav': hist.loc(5)}][{'dataset': sum}]
         #central = out[{'mass': sum, 'dataset': ['TTToSemiLeptonic_16', 'TTToSemiLeptonic_16APV', 'TTTo2L2Nu_16', 'TTTo2L2Nu_16APV'], 'meson_id': hist.loc(pdgId), 'systematic': 'nominal', 'jet_flav': hist.loc(5)}][{'dataset': sum}]
-        nom = output[f'xb_mass_{meson_name}_nom'][{'cut': meson_name}][{'mass': sum, 'dataset': ['TTToSemiLeptonic_16'], 'meson_id': hist.loc(pdgId), 'systematic': 'nominal', 'jet_flav': hist.loc(5)}][{'dataset': sum}]
+        nom = output[f'xb_mass_{meson_name}_nom'][{'cut': meson_name}][{'mass': sum, 'dataset': ttbar, 'meson_id': hist.loc(pdgId), 'systematic': 'nominal', 'jet_flav': hist.loc(5)}][{'dataset': sum}]
         #nom = output[f'xb_mass_{meson_name}_nom'][{'cut': meson_name}][{'mass': sum, 'dataset': ['TTToSemiLeptonic_16', 'TTToSemiLeptonic_16APV', 'TTTo2L2Nu_16', 'TTTo2L2Nu_16APV'], 'meson_id': hist.loc(pdgId), 'systematic': 'nominal', 'jet_flav': hist.loc(5)}][{'dataset': sum}]
         nom *= nom.values()/np.sum(nom.values()) / (central.values()/np.sum(central.values())) / central.values()
-        up = output[f'xb_mass_{meson_name}_up'][{'cut': meson_name}][{'mass': sum, 'dataset': ['TTToSemiLeptonic_16'], 'meson_id': hist.loc(pdgId), 'systematic': 'nominal', 'jet_flav': hist.loc(5)}][{'dataset': sum}]
+        up = output[f'xb_mass_{meson_name}_up'][{'cut': meson_name}][{'mass': sum, 'dataset': ttbar, 'meson_id': hist.loc(pdgId), 'systematic': 'nominal', 'jet_flav': hist.loc(5)}][{'dataset': sum}]
         #up = output[f'xb_mass_{meson_name}_up'][{'cut': meson_name}][{'mass': sum, 'dataset': ['TTToSemiLeptonic_16', 'TTToSemiLeptonic_16APV', 'TTTo2L2Nu_16', 'TTTo2L2Nu_16APV'], 'meson_id': hist.loc(pdgId), 'systematic': 'nominal', 'jet_flav': hist.loc(5)}][{'dataset': sum}]
         up *= up.values()/np.sum(up.values()) / (central.values()/np.sum(central.values())) / central.values()
-        down = output[f'xb_mass_{meson_name}_down'][{'cut': meson_name}][{'mass': sum, 'dataset': ['TTToSemiLeptonic_16'], 'meson_id': hist.loc(pdgId), 'systematic': 'nominal', 'jet_flav': hist.loc(5)}][{'dataset': sum}]
+        down = output[f'xb_mass_{meson_name}_down'][{'cut': meson_name}][{'mass': sum, 'dataset': ttbar, 'meson_id': hist.loc(pdgId), 'systematic': 'nominal', 'jet_flav': hist.loc(5)}][{'dataset': sum}]
         #down = output[f'xb_mass_{meson_name}_down'][{'mass': sum, 'dataset': ['TTToSemiLeptonic_16', 'TTToSemiLeptonic_16APV', 'TTTo2L2Nu_16', 'TTTo2L2Nu_16APV'], 'meson_id': hist.loc(pdgId), 'systematic': 'nominal', 'jet_flav': hist.loc(5)}][{'dataset': sum}]
         down *= down.values()/np.sum(down.values()) / (central.values()/np.sum(central.values())) / central.values()
         fout[f'histo/xb_mass_{meson_name}_nom_{s}'] = nom
@@ -328,22 +334,22 @@ def plot_mass(meson='d0'):
     h2 = out[{'xb': sum, 'meson_id': hist.loc(pdgId), 'systematic': 'nominal'}]
     print(f'{meson_name} before bkg sub {h2[{"dataset": sum, "mass": sum, "jet_flav": sum}]} events')
     if meson_name == 'd0mu':
-        h2 += output[f'xb_mass_{meson}'][{'cut': meson_name}][{'xb': sum, 'meson_id': hist.loc(pdgId), 'systematic': 'nominal'}]
-        h2 += out[{'xb': sum, 'meson_id': hist.loc(421), 'systematic': 'nominal'}]
+        h2 += output[f'xb_mass_{meson}'][{'cut': meson}][{'xb': sum, 'meson_id': hist.loc(421), 'systematic': 'nominal'}]
+        #h2 += out[{'cut': meson, 'xb': sum, 'meson_id': hist.loc(421), 'systematic': 'nominal'}]
     h_name = [s for s in out.axes['dataset'] if 'TTToSemiLep' not in s and 'TTTo2L2Nu' not in s and not any(p in s for p in data_list)]
     h_samp = [(np.sum(h2[{'dataset': s}].values()), i, h2[{'dataset': s, 'jet_flav': sum}]) for i,s in enumerate(h_name)]
     h_samp.sort(key=lambda x: x[0])
     h_name = [h_name[i] for _,i,_ in h_samp]
     #h2.plot1d(label=f'{meson_tex[meson]}')
     h_samp = [histo for _,_,histo in h_samp]
-    h_samp.append(h2[{'dataset': ['TTToSemiLeptonic_16', 'TTTo2L2Nu_16'], 'jet_flav': hist.loc(0)}][{'dataset': sum}])
+    h_samp.append(h2[{'dataset': ttbar, 'jet_flav': hist.loc(0)}][{'dataset': sum}])
     #h_samp.append(h2[{'dataset': ['TTToSemiLeptonic_16', 'TTToSemiLeptonic_16APV', 'TTTo2L2Nu_16', 'TTTo2L2Nu_16APV'], 'jet_flav': hist.loc(0)}][{'dataset': sum}])
     #h_samp.append(h2[{'dataset': ['TTToSemiLeptonic_16', 'TTToSemiLeptonic_16APV', 'TTTo2L2Nu_16', 'TTTo2L2Nu_16APV'], 'jet_flav': slice(hist.loc(1), hist.loc(4), sum)}][{'dataset': sum}])
-    h_samp.append(h2[{'dataset': ['TTToSemiLeptonic_16', 'TTTo2L2Nu_16'], 'jet_flav': hist.loc(4)}][{'dataset': sum}])
+    h_samp.append(h2[{'dataset': ttbar, 'jet_flav': hist.loc(4)}][{'dataset': sum}])
     #h_samp.append(h2[{'dataset': ['TTToSemiLeptonic_16', 'TTToSemiLeptonic_16APV', 'TTTo2L2Nu_16', 'TTTo2L2Nu_16APV'], 'jet_flav': hist.loc(4)}][{'dataset': sum}])
-    h_samp.append(h2[{'dataset': ['TTTo2L2Nu_16'], 'jet_flav': hist.loc(5)}][{'dataset': sum}])
+    h_samp.append(h2[{'dataset': ttbar_di, 'jet_flav': hist.loc(5)}][{'dataset': sum}])
     #h_samp.append(h2[{'dataset': ['TTTo2L2Nu_16', 'TTTo2L2Nu_16APV'], 'jet_flav': hist.loc(5)}][{'dataset': sum}])
-    h_samp.append(h2[{'dataset': ['TTToSemiLeptonic_16'], 'jet_flav': hist.loc(5)}][{'dataset': sum}])
+    h_samp.append(h2[{'dataset': ttbar_semi, 'jet_flav': hist.loc(5)}][{'dataset': sum}])
     #h_samp.append(h2[{'dataset': ['TTToSemiLeptonic_16', 'TTToSemiLeptonic_16APV'], 'jet_flav': hist.loc(5)}][{'dataset': sum}])
     if 'jpsi' in meson or 'mu' in meson_name:
         h_samp = [histo[...,::hist.rebin(2)] for histo in h_samp]
@@ -391,7 +397,7 @@ def plot_mass(meson='d0'):
     if meson == 'jpsi':
         plt.ylim(0,1000)
     elif meson_name == 'd0mu':
-        plt.ylim(0, 400)
+        plt.ylim(0, 3000)
     hep.cms.label(lumi=lumi_tot)
     h3 = out[{'xb': sum, 'meson_id': hist.loc(pdgId), 'systematic': 'nominal', 'jet_flav': sum}]
     data_name = [n for n in h3.axes['dataset'] if any(p in n for p in data_list)]
@@ -450,13 +456,13 @@ def plot_mass(meson='d0'):
     h_name = [h_name[i] for _,i,_ in h_samp]
     #h2.plot1d(label=f'{meson_tex[meson]}')
     h_samp = [histo for _,_,histo in h_samp]
-    h_samp.append(h2[{'dataset': ['TTToSemiLeptonic_16', 'TTTo2L2Nu_16'], 'jet_flav': hist.loc(0)}][{'dataset': sum}])
+    h_samp.append(h2[{'dataset': ttbar, 'jet_flav': hist.loc(0)}][{'dataset': sum}])
     #h_samp.append(h2[{'dataset': ['TTToSemiLeptonic_16', 'TTToSemiLeptonic_16APV', 'TTTo2L2Nu_16', 'TTTo2L2Nu_16APV'], 'jet_flav': hist.loc(0)}][{'dataset': sum}])
-    h_samp.append(h2[{'dataset': ['TTToSemiLeptonic_16', 'TTTo2L2Nu_16'], 'jet_flav': hist.loc(4)}][{'dataset': sum}])
+    h_samp.append(h2[{'dataset': ttbar, 'jet_flav': hist.loc(4)}][{'dataset': sum}])
     #h_samp.append(h2[{'dataset': ['TTToSemiLeptonic_16', 'TTToSemiLeptonic_16APV', 'TTTo2L2Nu_16', 'TTTo2L2Nu_16APV'], 'jet_flav': hist.loc(4)}][{'dataset': sum}])
-    h_samp.append(h2[{'dataset': ['TTTo2L2Nu_16'], 'jet_flav': hist.loc(5)}][{'dataset': sum}])
+    h_samp.append(h2[{'dataset': ttbar_di, 'jet_flav': hist.loc(5)}][{'dataset': sum}])
     #h_samp.append(h2[{'dataset': ['TTTo2L2Nu_16', 'TTTo2L2Nu_16APV'], 'jet_flav': hist.loc(5)}][{'dataset': sum}])
-    h_samp.append(h2[{'dataset': ['TTToSemiLeptonic_16'], 'jet_flav': hist.loc(5)}][{'dataset': sum}])
+    h_samp.append(h2[{'dataset': ttbar_semi, 'jet_flav': hist.loc(5)}][{'dataset': sum}])
     #h_samp.append(h2[{'dataset': ['TTToSemiLeptonic_16', 'TTToSemiLeptonic_16APV'], 'jet_flav': hist.loc(5)}][{'dataset': sum}])
     h_name.append('$t\overline{t}$ l-jet')
     h_name.append('$t\overline{t}$ c-jet')
@@ -480,20 +486,24 @@ def plot_mass(meson='d0'):
     plt.close()
     '''
     
-    h = output[f'ctau'][{'cut': meson_name}][{'meson_id': hist.loc(pdgId), 'systematic': 'nominal'}]
+    #h = output[f'ctau'][{'cut': meson_name}][{'meson_id': hist.loc(pdgId), 'systematic': 'nominal'}]
+    #FIXME
+    h = output[f'ctau'][{'cut': meson}][{'meson_id': hist.loc(pdgId), 'systematic': 'nominal'}]
+    #if meson_name == 'd0mu':
+    #    h += output['ctau'][{'cut': meson}][{'meson_id': hist.loc(421), 'systematic': 'nominal'}]
     h_name = [s for s in h.axes['dataset'] if 'TTToSemiLep' not in s and 'TTTo2L2Nu' not in s and not any(p in s for p in data_list)]
     h_samp = [(np.sum(h[{'dataset': s}].values()), i, h[{'dataset': s, 'jet_flav': sum}]) for i,s in enumerate(h_name)]
     h_samp.sort(key=lambda x: x[0])
     h_name = [h_name[i] for _,i,_ in h_samp]
     #h2.plot1d(label=f'{meson_tex[meson]}')
     h_samp = [histo for _,_,histo in h_samp]
-    h_samp.append(h[{'dataset': ['TTToSemiLeptonic_16', 'TTTo2L2Nu_16'], 'jet_flav': hist.loc(0)}][{'dataset': sum}])
+    h_samp.append(h[{'dataset': ttbar, 'jet_flav': hist.loc(0)}][{'dataset': sum}])
     #h_samp.append(h[{'dataset': ['TTToSemiLeptonic_16', 'TTToSemiLeptonic_16APV', 'TTTo2L2Nu_16', 'TTTo2L2Nu_16APV'], 'jet_flav': hist.loc(0)}][{'dataset': sum}])
-    h_samp.append(h[{'dataset': ['TTToSemiLeptonic_16', 'TTTo2L2Nu_16'], 'jet_flav': hist.loc(4)}][{'dataset': sum}])
+    h_samp.append(h[{'dataset': ttbar, 'jet_flav': hist.loc(4)}][{'dataset': sum}])
     #h_samp.append(h[{'dataset': ['TTToSemiLeptonic_16', 'TTToSemiLeptonic_16APV', 'TTTo2L2Nu_16', 'TTTo2L2Nu_16APV'], 'jet_flav': hist.loc(4)}][{'dataset': sum}])
-    h_samp.append(h[{'dataset': ['TTTo2L2Nu_16'], 'jet_flav': hist.loc(5)}][{'dataset': sum}])
+    h_samp.append(h[{'dataset': ttbar_di, 'jet_flav': hist.loc(5)}][{'dataset': sum}])
     #h_samp.append(h[{'dataset': ['TTTo2L2Nu_16', 'TTTo2L2Nu_16APV'], 'jet_flav': hist.loc(5)}][{'dataset': sum}])
-    h_samp.append(h[{'dataset': ['TTToSemiLeptonic_16'], 'jet_flav': hist.loc(5)}][{'dataset': sum}])
+    h_samp.append(h[{'dataset': ttbar, 'jet_flav': hist.loc(5)}][{'dataset': sum}])
     #h_samp.append(h[{'dataset': ['TTToSemiLeptonic_16', 'TTToSemiLeptonic_16APV'], 'jet_flav': hist.loc(5)}][{'dataset': sum}])
     h_name.append('$t\overline{t}$ l-jet')
     h_name.append('$t\overline{t}$ c-jet')
@@ -503,7 +513,11 @@ def plot_mass(meson='d0'):
     hep.histplot(h_samp, label=h_name, stack=True, histtype='fill', flow='none')
     hep.cms.label(lumi=lumi_tot)
     plt.legend(ncol=4, loc='upper left', borderaxespad=0.)
-    h3 = output[f'ctau'][{'cut': meson_name}][{'meson_id': hist.loc(pdgId), 'systematic': 'nominal', 'jet_flav': sum}]
+    #FIXME
+    h3 = output[f'ctau'][{'cut': meson}][{'meson_id': hist.loc(pdgId), 'systematic': 'nominal', 'jet_flav': sum}]
+    #if meson_name == 'd0mu':
+    #    h3 += output['ctau'][{'cut': meson}][{'meson_id': hist.loc(421), 'systematic': 'nominal', 'jet_flav': sum}]
+    #h3 = output[f'ctau'][{'cut': meson_name}][{'meson_id': hist.loc(pdgId), 'systematic': 'nominal', 'jet_flav': sum}]
     data_name = [n for n in h3.axes['dataset'] if any(p in n for p in data_list)]
     h3 = h3[{'dataset': data_name}][{'dataset': sum}]
     hep.histplot(h3, label='Data', histtype='errorbar', color='k', flow='none')
@@ -537,18 +551,20 @@ def plot_mass(meson='d0'):
         #    h = out[{'systematic': 'nominal', 'mass': sum, 'xb': sum, 'meson_id': hist.loc(pdgId)}]
         #else:
         #    h = output[var][{'systematic': 'nominal'}]
-        h = output[var][{'cut': meson_name}][{'systematic': 'nominal', 'meson_id': hist.loc(pdgId)}]
+        #FIXME
+        h = output[var][{'cut': meson}][{'systematic': 'nominal', 'meson_id': hist.loc(pdgId)}]
+        #h = output[var][{'cut': meson_name}][{'systematic': 'nominal', 'meson_id': hist.loc(pdgId)}]
         h_name = [s for s in out.axes['dataset'] if 'TTToSemiLep' not in s and 'TTTo2L2Nu' not in s and 'APV' not in s and not any(d in s for d in data_list)]
         h_samp = [(np.sum(h[{'dataset': s}].values()), i, h[{'dataset': s}]) for i,s in enumerate(h_name)]
         h_samp.sort(key=lambda x: x[0])
         h_name = [h_name[i] for _,i,_ in h_samp]
         h_samp = [histo for _,_,histo in h_samp]
-        h_samp.append(h[{'dataset': ['TTTo2L2Nu_16']}][{'dataset': sum}])
+        h_samp.append(h[{'dataset': ttbar_di}][{'dataset': sum}])
         #h_samp.append(h[{'dataset': ['TTTo2L2Nu_16', 'TTTo2L2Nu_16APV']}][{'dataset': sum}])
-        h_samp.append(h[{'dataset': ['TTToSemiLeptonic_16']}][{'dataset': sum}])
+        h_samp.append(h[{'dataset': ttbar_semi}][{'dataset': sum}])
         #h_samp.append(h[{'dataset': ['TTToSemiLeptonic_16', 'TTToSemiLeptonic_16APV']}][{'dataset': sum}])
-        #h_samp.append(h[{'dataset': ['TTTo2L2Nu_16']}][{'dataset': sum}])
-        #h_samp.append(h[{'dataset': ['TTToSemiLeptonic_16']}][{'dataset': sum}])
+        #h_samp.append(h[{'dataset': ttbar_di}][{'dataset': sum}])
+        #h_samp.append(h[{'dataset': ttbar}][{'dataset': sum}])
         #if 'jpsi' in meson or 'mu' in meson_name:
         #    h_samp = [histo[...,::hist.rebin(2)] for histo in h_samp]
         h_name.append('$t\overline{t} \\rightarrow l\overline{l}$')
@@ -558,18 +574,22 @@ def plot_mass(meson='d0'):
         #    h3 = output[var][{'meson_id': hist.loc(pdgId), 'systematic': 'nominal'}]
         #else:
         #    h3 = output[var][{'systematic': 'nominal'}]
-        h3 = output[var][{'cut': meson_name}][{'meson_id': hist.loc(pdgId), 'systematic': 'nominal'}]
+        #FIXME
+        h3 = output[var][{'cut': meson}][{'meson_id': hist.loc(pdgId), 'systematic': 'nominal'}]
+        #h3 = output[var][{'cut': meson_name}][{'meson_id': hist.loc(pdgId), 'systematic': 'nominal'}]
         data_name = [n for n in h3.axes['dataset'] if any(p in n for p in data_list)]
         h3 = h3[{'dataset': data_name}][{'dataset': sum}]
         hep.histplot(h3, yerr=True, label='Data', histtype='errorbar', density=dens, color='k', flow='none')
         hep.histplot(h_samp, label=h_name, stack=True, histtype='fill', density=dens, flow='none')
-        hs = output[var][{'cut': meson_name}][{'dataset': [ds for ds in output[var].axes['dataset'] if not any(s in ds for s in data_list)], 'meson_id': hist.loc(pdgId)}][{'dataset': sum}]
+        #FIXME
+        hs = output[var][{'cut': meson}][{'dataset': [ds for ds in output[var].axes['dataset'] if not any(s in ds for s in data_list)], 'meson_id': hist.loc(pdgId)}][{'dataset': sum}]
+        #hs = output[var][{'cut': meson_name}][{'dataset': [ds for ds in output[var].axes['dataset'] if not any(s in ds for s in data_list)], 'meson_id': hist.loc(pdgId)}][{'dataset': sum}]
         syst_up = np.zeros_like(h3.values())
         syst_down = np.zeros_like(h3.values())
         if len(hs.axes['systematic']) > 1:
             for syst in hs.axes['systematic']:
                 if syst == 'nominal': continue
-                if 'FSR' not in syst: continue
+                #if 'FSR' not in syst: continue
                 nom = hs[{'systematic': 'nominal'}].values()
                 syst_val = hs[{'systematic': syst}].values()
                 syst_val *= np.sum(nom) / np.sum(syst_val)
@@ -595,10 +615,21 @@ def plot_control(meson='d0'):
     pdgId = mass_id[meson] if not meson == 'ttbar' else 421
     meson_name = meson
     meson = meson.replace('mu', '')
-    for var in ['l0pt', 'j0pt', 'b0pt', 'nleps', 'njets', 'nbjets', 'jet_flav', 'ht', 'nvtx']:
+    var_lst = ['l0pt', 'j0pt', 'b0pt', 'nleps', 'njets', 'nbjets', 'jet_flav', 'ht', 'met', 'nvtx']
+    #var_lst = ['l0pt']
+    for var in var_lst:
         if var not in output:
             print(f'Skipping {var}!')
             continue
+        fig, (ax, rax) = plt.subplots(
+            nrows=2,
+            ncols=1,
+            figsize=(10,10),
+            gridspec_kw={"height_ratios": (3, 1)},
+            sharex=True
+        )
+        fig.subplots_adjust(hspace=.07)
+        plt.sca(ax)
         out = output[var][{'cut': meson_name}]
         #if var == 'jet_flav':
         #    h = out[{'systematic': 'nominal', 'mass': sum, 'xb': sum, 'meson_id': hist.loc(pdgId)}]
@@ -612,12 +643,12 @@ def plot_control(meson='d0'):
         h_samp.sort(key=lambda x: x[0])
         h_name = [h_name[i] for _,i,_ in h_samp]
         h_samp = [histo for _,_,histo in h_samp]
-        h_samp.append(h[{'dataset': ['TTTo2L2Nu_16']}][{'dataset': sum}])
+        h_samp.append(h[{'dataset': ttbar_di}][{'dataset': sum}])
         #h_samp.append(h[{'dataset': ['TTTo2L2Nu_16', 'TTTo2L2Nu_16APV']}][{'dataset': sum}])
-        h_samp.append(h[{'dataset': ['TTToSemiLeptonic_16']}][{'dataset': sum}])
+        h_samp.append(h[{'dataset': ttbar_semi}][{'dataset': sum}])
         #h_samp.append(h[{'dataset': ['TTToSemiLeptonic_16', 'TTToSemiLeptonic_16APV']}][{'dataset': sum}])
-        #h_samp.append(h[{'dataset': ['TTTo2L2Nu_16']}][{'dataset': sum}])
-        #h_samp.append(h[{'dataset': ['TTToSemiLeptonic_16']}][{'dataset': sum}])
+        #h_samp.append(h[{'dataset': ttbar_di}][{'dataset': sum}])
+        #h_samp.append(h[{'dataset': ttbar}][{'dataset': sum}])
         #if 'jpsi' in meson or 'mu' in meson_name:
         #    h_samp = [histo[...,::hist.rebin(2)] for histo in h_samp]
         h_name.append('$t\overline{t} \\rightarrow l\overline{l}$')
@@ -642,7 +673,7 @@ def plot_control(meson='d0'):
         if len(hs.axes['systematic']) > 1:
             for syst in hs.axes['systematic']:
                 if syst == 'nominal': continue
-                if 'FSR' not in syst: continue
+                #if 'FSR' not in syst: continue
                 nom = hs[{'systematic': 'nominal'}].values()
                 syst_val = hs[{'systematic': syst}].values()
                 syst_val *= np.sum(nom) / np.sum(syst_val)
@@ -652,13 +683,33 @@ def plot_control(meson='d0'):
             syst_down = np.sqrt(syst_down)
             error_band_args = { 
                 "facecolor": "none", "linewidth": 0,
-                "alpha": .15, "color": "black", "hatch": "///", "step": "pre"
+                "alpha": .15, "color": "black", "step": "pre"
+                #"alpha": .15, "color": "black", "hatch": "///", "step": "pre"
             }
             syst_up = hs[{'systematic': 'nominal'}].values() + syst_up
             syst_down = hs[{'systematic': 'nominal'}].values() - syst_down
             #plt.stairs(syst_up, baseline=syst_down, label='Total syst.', **error_band_args)
             plt.fill_between(hs.axes[var].edges[1:], syst_down, syst_up, label='Total syst.', **error_band_args)
         plt.legend()
+        plt.xlabel('')
+        plt.sca(rax)
+        mc_tot = h[{'dataset': [ds for ds in output[var].axes['dataset'] if not any(s in ds for s in data_list)]}][{'dataset': sum}]
+        hep.histplot(h3/mc_tot, yerr=np.sqrt(h3.values())/np.sum(h3.values()), label='Data/MC', histtype='errorbar', density=dens, color='k', flow='none')
+        edge = hs.axes[var].edges
+        center = hs.axes[var].centers
+        #error_band_args = { 
+        #    "facecolor": "none", "linewidth": 0,
+        #    "alpha": .15, "color": "black", "hatch": "///"
+        #}
+        bottom=syst_down/mc_tot
+        top=syst_up/mc_tot
+        #rax.bar(center, bottom=bottom, height=top-bottom, width=edge[1]-edge[0], label='Total syst.', **error_band_args)
+        #rax.bar(edge[:-1], bottom=syst_down/mc_tot.values(), height=syst_up/mc_tot.values(), width=edge[1]-edge[0], label='Total syst.', **error_band_args)
+        plt.fill_between(hs.axes[var].centers-(edge[1] - edge[0])/2, bottom, top, label='Total syst.', **error_band_args)
+        #plt.fill_between(hs.axes[var].edges[1:], 1-syst_down/np.sum(mc_tot.values()), 1+syst_up/np.sum(mc_tot.values()), label='Total syst.', **error_band_args)
+        plt.ylabel('Data/MC')
+        plt.ylim([0.85, 1.15])
+        plt.sca(ax)
         hep.cms.label(lumi=lumi_tot)
         plt.savefig(f'{path}/{var}_{meson_name}.png')
         plt.close()
@@ -696,7 +747,7 @@ def plot_and_fit_mass(meson='d0'):
     xb_bins = np.linspace(0, 1, 10)
     #if 'd0mu' in meson_name:
     #    xb_bins = d0mu_xb_bins
-    sig_ds = ['TTToSemiLeptonic_16', 'TTToSemiLeptonic_16APV', 'TTTo2L2Nu_16', 'TTTo2L2Nu_16APV']
+    sig_ds = ttbar#['TTToSemiLeptonic_16', 'TTToSemiLeptonic_16APV', 'TTTo2L2Nu_16', 'TTTo2L2Nu_16APV']
     bkg_ds = [s for s in out.axes['dataset'] if 'TTToSemiLep' not in s and 'TTTo2L2Nu' not in s]
     jets = sum
     xb = h[{'dataset': sum, 'xb': sum, 'meson_id': hist.loc(pdgId), 'jet_flav': jets}]#[...,::hist.rebin(2)]
@@ -861,7 +912,7 @@ def plot_and_fit_mass(meson='d0'):
     elif meson_name == 'jpsi':
         plt.ylim(0, 300)
     elif meson_name == 'd0mu':
-        plt.ylim(0, 300)
+        plt.ylim(0, 700)
     plt.legend(ncol=4, loc='upper left', borderaxespad=0.)
     #plt.legend(ncol=4, bbox_to_anchor=(-0.1, 1.15), loc='upper left', borderaxespad=0.)
     hep.cms.label(lumi=lumi_tot)
@@ -1063,11 +1114,11 @@ def plot_and_fit_mass(meson='d0'):
     fout.close()
 
 
-plot_control('ttbar')
+#plot_control('ttbar')
 plot_control('d0')
-plot_mass('d0')
-plot_mass('jpsi')
-plot_mass('d0mu')
-plot_and_fit_mass('d0')
-plot_and_fit_mass('d0mu')
-plot_and_fit_mass('jpsi')
+#plot_mass('d0')
+#plot_mass('jpsi')
+#plot_mass('d0mu')
+#plot_and_fit_mass('d0')
+#plot_and_fit_mass('d0mu')
+#plot_and_fit_mass('jpsi')
