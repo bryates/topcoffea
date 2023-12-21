@@ -160,7 +160,10 @@ def passesTrgInLst(events,trg_name_lst):
         raise Exception("No triggers from the sample matched to the ones used in the analysis.")
 
     for trg_name in common_triggers:
+    #    print(trg_name, len(trg_info_dict[trg_name]), trg_info_dict[trg_name])
         tpass = tpass | trg_info_dict[trg_name]
+    #print(len(ak.any((trg_info_dict[trg_name] for trg_name in common_triggers), axis=0)), ak.any((trg_info_dict[trg_name] for trg_name in common_triggers), axis=0))
+    #tpass = ak.any((trg_info_dict[trg_name] for trg_name in common_triggers), axis=0)
     return tpass
 
 # This is what we call from the processor
@@ -193,6 +196,68 @@ def trgPassNoOverlap(events,is_data,dataset,year):
 
     # Return true if passes trg and does not overlap
     return (trg_passes & ~trg_overlaps)
+
+# 1l selection (we do not make the ss requirement here)
+def add1lMaskAndSFs(events, year, isData, sampleType):
+
+    # lep and padded lep
+    lep = events.leptons
+    padded_lep = ak.pad_none(lep,1)
+
+    # Filters and cleanups
+    filter_flags = events.Flag
+    filters = filter_flags.goodVertices & filter_flags.globalSuperTightHalo2016Filter & filter_flags.HBHENoiseFilter & filter_flags.HBHENoiseIsoFilter & filter_flags.EcalDeadCellTriggerPrimitiveFilter & filter_flags.BadPFMuonFilter & (((year == "2016")|(year == "2016APV")) | filter_flags.ecalBadCalibFilter) & (isData | filter_flags.eeBadScFilter)
+    mask = filters
+    #cleanup = events.minMllAFAS > 12
+    #muTightCharge = ((abs(padded_lep[:,0].pdgId)!=13) | (padded_lep[:,0].tightCharge>=1))
+
+    ## IDs
+    #eleID1 = (abs(padded_lep[:,0].pdgId)!=11)
+
+    ## 1l requirements:
+    #exclusive = ak.num( lep,axis=-1)<2
+    #semilep = (ak.num(lep)) >= 1
+    #pt25 = (ak.any(ak.firsts(lep.pt) > 25.0, axis=1))
+    #mask = (filters & cleanup & semilep & pt25 & exclusive & eleID1 & muTightCharge)
+
+    ## MC matching requirement (already passed for data)
+    #if sampleType == "data":
+    #    pass
+    #else:
+    #    lep1_match_prompt = ((padded_lep[:,0].genPartFlav==1) | (padded_lep[:,0].genPartFlav == 15))
+    #    lep1_charge       = ((padded_lep[:,0].gen_pdgId*padded_lep[:,0].pdgId) > 0)
+    #    lep1_match_conv   = (padded_lep[:,0].genPartFlav==22)
+    #    prompt_mask = ( lep1_match_prompt & lep1_charge)
+    #    conv_mask   = ( lep1_match_conv)
+    #    if sampleType == 'prompt':
+    #        mask = (mask & prompt_mask)
+    #    elif sampleType =='conversions':
+    #        mask = (mask & conv_mask)
+    #    elif sampleType =='prompt_and_conversions':
+    #        # Samples that we use for both prompt and conv contributions (i.e. just DY)
+    #        mask = (mask & (prompt_mask | conv_mask))
+    #    else:
+    #        raise Exception(f"Error: Unknown sampleType {sampleType}.")
+
+    #mask_nozeeveto = mask
+    events['is1l'] = ak.fill_none(mask,False)
+    #events['is1l_nozeeveto'] = ak.fill_none(mask_nozeeveto,False)
+
+    # SFs
+    events['sf_1l_muon'] = padded_lep[:,0].sf_nom_1l_muon
+    events['sf_1l_elec'] = padded_lep[:,0].sf_nom_2l_elec
+    events['sf_1l_hi_muon'] = padded_lep[:,0].sf_hi_1l_muon
+    events['sf_1l_hi_elec'] = padded_lep[:,0].sf_hi_2l_elec
+    events['sf_1l_lo_muon'] = padded_lep[:,0].sf_lo_1l_muon
+    events['sf_1l_lo_elec'] = padded_lep[:,0].sf_lo_2l_elec
+
+    # SR:
+    #events['is1l_SR'] = (padded_lep[:,0].isTightLep)
+    #events['is1l_SR'] = ak.fill_none(events['is1l_SR'],False)
+
+    # FF:
+    #fakeRateWeight2l(events, padded_lep[:,0], padded_lep[:,1])
+
 
 
 # 2l selection (we do not make the ss requirement here)
@@ -371,6 +436,14 @@ def add4lMaskAndSFs(events, year, isData):
     events['is4l_SR'] = tightleps
     events['is4l_SR'] = ak.fill_none(events['is4l_SR'],False)
 
+def addTriggerCat(events):
+    n_e_1l = ak.num(events.Electron)==1
+    n_m_1l = ak.num(events.Muon)==1
+
+    # 1l masks
+    events['is_e'] = ((n_e_1l==1) & (n_m_1l==0))
+    events['is_m'] = ((n_e_1l==0) & (n_m_1l==1))
+
 
 def addLepCatMasks(events):
 
@@ -380,14 +453,16 @@ def addLepCatMasks(events):
     padded_fo_id = padded_fo.pdgId
 
     # Find the numbers of e and m in the event
-    is_e_mask = (abs(padded_fo_id)==11)
-    is_m_mask = (abs(padded_fo_id)==13)
     n_e_2l = ak.sum(is_e_mask[:,0:2],axis=-1) # Make sure we only look at first two leps
     n_m_2l = ak.sum(is_m_mask[:,0:2],axis=-1) # Make sure we only look at first two leps
     n_e_3l = ak.sum(is_e_mask[:,0:3],axis=-1) # Make sure we only look at first three leps
     n_m_3l = ak.sum(is_m_mask[:,0:3],axis=-1) # Make sure we only look at first three leps
     n_e_4l = ak.sum(is_e_mask,axis=-1)        # Look at all the leps
     n_m_4l = ak.sum(is_m_mask,axis=-1)        # Look at all the leps
+
+    # 1l masks
+    events['is_e'] = ((n_e_1l==1) & (n_m_1l==0))
+    events['is_m'] = ((n_e_1l==0) & (n_m_1l==1))
 
     # 2l masks
     events['is_ee'] = ((n_e_2l==2) & (n_m_2l==0))

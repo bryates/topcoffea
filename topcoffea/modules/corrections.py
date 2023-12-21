@@ -15,6 +15,7 @@ from coffea.jetmet_tools import JECStack, CorrectedJetsFactory, CorrectedMETFact
 from coffea.btag_tools.btagscalefactor import BTagScaleFactor
 from topcoffea.modules.GetValuesFromJsons import get_param
 from coffea.lookup_tools import txt_converters, rochester_lookup
+import coffea.util
 
 basepathFromTTH = 'data/fromTTH/'
 
@@ -208,6 +209,9 @@ def AttachMuonSF(muons, year):
     new_sf  = SFevaluator['MuonSF_{year}'.format(year=year)](eta,pt)
     new_err = SFevaluator['MuonSF_{year}_er'.format(year=year)](eta,pt)
 
+    muons['sf_nom_1l_muon'] = new_sf * reco_sf * loose_sf * iso_sf
+    muons['sf_hi_1l_muon']  = (new_sf + new_err) * (reco_sf + reco_err) * (loose_sf + loose_err) * (iso_sf + iso_err)
+    muons['sf_lo_1l_muon']  = (new_sf - new_err) * (reco_sf - reco_err) * (loose_sf - loose_err) * (iso_sf - iso_err)
     muons['sf_nom_2l_muon'] = new_sf * reco_sf * loose_sf * iso_sf
     muons['sf_hi_2l_muon']  = (new_sf + new_err) * (reco_sf + reco_err) * (loose_sf + loose_err) * (iso_sf + iso_err)
     muons['sf_lo_2l_muon']  = (new_sf - new_err) * (reco_sf - reco_err) * (loose_sf - loose_err) * (iso_sf - iso_err)
@@ -273,36 +277,38 @@ def AttachElectronSF(electrons, year):
 def GetMCeffFunc(year, wp='medium', flav='b'):
     if year not in ['2016','2016APV','2017','2018']:
         raise Exception(f"Error: Unknown year \"{year}\".")
-    pathToBtagMCeff = topcoffea_path('data/btagSF/UL/btagMCeff_%s.pkl.gz'%year)
+    pathToBtagMCeff = topcoffea_path('data/btagSF/UL/btag.pkl')
+    #pathToBtagMCeff = topcoffea_path('data/btagSF/UL/btagMCeff_%s.pkl.gz'%year)
     hists = {}
-    with gzip.open(pathToBtagMCeff) as fin:
-        hin = pickle.load(fin)
-        for k in hin.keys():
-            if k in hists:
-                hists[k] += hin[k]
-            else:
-                hists[k] = hin[k]
+    #with gzip.open(pathToBtagMCeff) as fin:
+    hin = coffea.util.load(pathToBtagMCeff)
+    #hin = pickle.load(fin)
+    for k in hin.keys():
+        if k in hists:
+            hists[k] += hin[k]
+        else:
+            hists[k] = hin[k]
     h = hists['jetptetaflav']
-    hnum = h.integrate('WP', wp)
-    hden = h.integrate('WP', 'all')
+    hnum = h[{'WP': wp}]
+    hden = h[{'WP': 'all'}]
     getnum = lookup_tools.dense_lookup.dense_lookup(
-        hnum.values(overflow='over')[()],
+        hnum.values()[()],
         [
-            hnum.axis('pt').edges(),
-            hnum.axis('abseta').edges(),
-            hnum.axis('flav').edges()
+            hnum.axes['pt'].edges,
+            hnum.axes['abseta'].edges,
+            hnum.axes['flav'].edges
         ]
     )
     getden = lookup_tools.dense_lookup.dense_lookup(
-        hden.values(overflow='over')[()],
+        hden.values()[()],
         [
-            hden.axis('pt').edges(),
-            hnum.axis('abseta').edges(),
-            hden.axis('flav').edges()
+            hden.axes['pt'].edges,
+            hnum.axes['abseta'].edges,
+            hden.axes['flav'].edges
         ]
     )
-    values = hnum.values(overflow='over')[()]
-    edges = [hnum.axis('pt').edges(), hnum.axis('abseta').edges(), hnum.axis('flav').edges()]
+    values = hnum.values()[()]
+    edges = [hnum.axes['pt'].edges, hnum.axes['abseta'].edges, hnum.axes['flav'].edges]
     fun = lambda pt, abseta, flav: getnum(pt,abseta,flav)/getden(pt,abseta,flav)
     return fun
 
@@ -780,13 +786,17 @@ def LoadTriggerSF(year, ch='2l', flav='em'):
     GetTrigDo = lookup_tools.dense_lookup.dense_lookup(do   , [h['hmn'].axis('l0pt').edges(), h['hmn'].axis(axisY).edges()])
     return [GetTrig, GetTrigDo, GetTrigUp]
 
-def GetTriggerSF(year, events, lep0, lep1):
+def GetTriggerSF(year, events, leps):
     ls = []
     for syst in [0,1]:
         #2l
-        SF_ee = np.where((events.is2l & events.is_ee), LoadTriggerSF(year,ch='2l',flav='ee')[syst](lep0.pt,lep1.pt), 1.0)
-        SF_em = np.where((events.is2l & events.is_em), LoadTriggerSF(year,ch='2l',flav='em')[syst](lep0.pt,lep1.pt), 1.0)
-        SF_mm = np.where((events.is2l & events.is_mm), LoadTriggerSF(year,ch='2l',flav='mm')[syst](lep0.pt,lep1.pt), 1.0)
+        lep0 = ak.firsts(leps)
+        SF_e = np.where(events.is_e, LoadTriggerSF(year,ch='2l',flav='ee')[syst](lep0.pt,lep0.pt), 1.0)
+        SF_m = np.where(events.is_m, LoadTriggerSF(year,ch='2l',flav='mm')[syst](lep0.pt,lep0.pt), 1.0)
+        #2l
+        #SF_ee = np.where((events.is2l & events.is_ee), LoadTriggerSF(year,ch='2l',flav='ee')[syst](lep0.pt,lep1.pt), 1.0)
+        #SF_em = np.where((events.is2l & events.is_em), LoadTriggerSF(year,ch='2l',flav='em')[syst](lep0.pt,lep1.pt), 1.0)
+        #SF_mm = np.where((events.is2l & events.is_mm), LoadTriggerSF(year,ch='2l',flav='mm')[syst](lep0.pt,lep1.pt), 1.0)
         #3l
         '''
         SF_eee=np.where((events.is3l & events.is_eee),LoadTriggerSF(year,ch='3l',flav='eee')[syst](lep0.pt,lep0.eta),1.0)
@@ -795,7 +805,8 @@ def GetTriggerSF(year, events, lep0, lep1):
         SF_mmm=np.where((events.is3l & events.is_mmm),LoadTriggerSF(year,ch='3l',flav='mmm')[syst](lep0.pt,lep0.eta),1.0)
         ls.append(SF_ee*SF_em*SF_mm*SF_eee*SF_eem*SF_emm*SF_mmm)
         '''
-        ls.append(SF_ee * SF_em * SF_mm)
+        #ls.append(SF_ee * SF_em * SF_mm)
+        ls.append(SF_e * SF_m)
     ls[1] = np.where(ls[1] == 1.0, 0.0, ls[1]) # stat unc. down
     events['trigger_sf'] = ls[0] # nominal
     events['trigger_sfDown'] = ls[0] - np.sqrt(ls[1] * ls[1] + ls[0]*0.02*ls[0]*0.02)

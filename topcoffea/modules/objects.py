@@ -76,6 +76,18 @@ def isLooseElec(miniPFRelIso_all,sip3d,lostHits):
 def isLooseMuon(miniPFRelIso_all,sip3d,looseId):
     return (miniPFRelIso_all<get_param("iso_cut")) & (sip3d<get_param("sip3d_cut")) & (looseId)
 
+def isVetoMuon(mu):
+    return mu.looseId & (mu.pt > get_param("loose_m_pt_cut")) & (abs(mu.eta) < get_param("eta_m_cut")) & (mu.jetRelIso < get_param("m_veto_iso_cut"))
+
+def isVetoElec(ele):
+    return (ele.cutBased == (1<<get_param("loose_e")))
+
+def isTightMuon(mu):
+    return mu.tightId & (mu.pt > get_param("tight_m_pt_cut")) & (abs(mu.eta) < get_param("eta_m_cut")) & (mu.jetRelIso < get_param("iso_cut"))
+
+def isTightElec(ele):
+    return (ele.cutBased >= (1<<get_param("tight_e")))  & (ele.pt > get_param("tight_e_pt_cut")) & (abs(ele.eta) < get_param("eta_e_cut")) & (ele.jetRelIso < get_param("iso_cut"))
+
 def isFOElec(pt, conept, jetBTagDeepFlav, ttH_idEmu_cuts_E3, convVeto, lostHits, mvaTTHUL, jetRelIso, mvaFall17V2noIso_WP90, year):
 
     # Get the btag cut for the year
