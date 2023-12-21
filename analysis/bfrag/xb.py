@@ -59,19 +59,19 @@ class AnalysisProcessor(processor.ProcessorABC):
         self.systematics = ['nominal', 'FSRup', 'FSRdown', 'ISRup', 'ISRdown']
 
         dataset_axis = hist.axis.StrCategory(name="dataset", label="", categories=[], growth=True)
-        ht_axis = hist.axis.Regular(name="ht", label="$H_{\mathrm{T}}$ [GeV]", bins=30, start=0, stop=300)
-        met_axis = hist.axis.Regular(name="met", label="$p_{\mathrm{T}^{\mathrm{miss}}}$ [GeV]", bins=30, start=0, stop=300)
+        ht_axis = hist.axis.Regular(name="ht", label="$\it{H}_{\mathrm{T}}$ [GeV]", bins=100, start=0, stop=1000)
+        met_axis = hist.axis.Regular(name="met", label="$\it{p}_{\mathrm{T}}^{\mathrm{miss}}$ [GeV]", bins=30, start=0, stop=300)
         j_pt_ch_axis = hist.axis.Regular(name="j_pt_ch", label="Leading jet $\Sigma p^{\mathrm{ch}_{\mathrm{T}}$ [GeV]", bins=30, start=0, stop=300)
-        jpt_axis = hist.axis.Regular(name="j0pt", label="Leading jet $p_{\mathrm{T}}$ [GeV]", bins=30, start=0, stop=300)
-        bpt_axis = hist.axis.Regular(name="b0pt", label="Leading b jet $p_{\mathrm{T}}$ [GeV]", bins=30, start=0, stop=300)
-        lpt_axis = hist.axis.Regular(name="l0pt", label="Leading lepton $p_{\mathrm{T}}$ [GeV]", bins=10, start=0, stop=100)
-        D0pt_axis= hist.axis.Regular(name="D0pt", label="Leading D0 $p_{\mathrm{T}}$ [GeV]", bins=10, start=0, stop=100)
-        D0pipt_axis= hist.axis.Regular(name="D0pipt", label="Leading D0 pi $p_{\mathrm{T}}$ [GeV]", bins=10, start=0, stop=100)
-        D0kpt_axis= hist.axis.Regular(name="D0kpt", label="Leading D0 k $p_{\mathrm{T}}$ [GeV]", bins=10, start=0, stop=100)
+        jpt_axis = hist.axis.Regular(name="j0pt", label="Leading jet $\it{p}_{\mathrm{T}}$ [GeV]", bins=30, start=0, stop=300)
+        bpt_axis = hist.axis.Regular(name="b0pt", label="Leading b jet $\it{p}_{\mathrm{T}}$ [GeV]", bins=30, start=0, stop=300)
+        lpt_axis = hist.axis.Regular(name="l0pt", label="Leading lepton $\it{p}_{\mathrm{T}}$ [GeV]", bins=30, start=0, stop=300)
+        D0pt_axis= hist.axis.Regular(name="D0pt", label="Leading D0 $\it{p}_{\mathrm{T}}$ [GeV]", bins=10, start=0, stop=100)
+        D0pipt_axis= hist.axis.Regular(name="D0pipt", label="Leading D0 pi $\it{p}_{\mathrm{T}}$ [GeV]", bins=10, start=0, stop=100)
+        D0kpt_axis= hist.axis.Regular(name="D0kpt", label="Leading D0 k $\it{p}_{\mathrm{T}}$ [GeV]", bins=10, start=0, stop=100)
         xb_jpsi_axis  = hist.axis.Regular(name="xb_jpsi",   label="$x_{\mathrm{b}}$", bins=10, start=0, stop=1)
         xb_axis  = hist.axis.Regular(name="xb",   label="$x_{\mathrm{b}}$", bins=10, start=0, stop=1)
         d0mu_xb_axis  = hist.axis.Variable(np.array([0, 0.2, 0.4, 0.55, 0.65, 0.75, 0.85, 0.95, 1.0]), name="xb",   label="$x_{\mathrm{b}}$")
-        xb_ch_axis  = hist.axis.Regular(name="xb_ch",   label="$x_{\mathrm{b}} \Sigma p_{\mathrm{T}}^{\mathrm{charged}}$", bins=10, start=0, stop=1)
+        xb_ch_axis  = hist.axis.Regular(name="xb_ch",   label="$x_{\mathrm{b}} \Sigma it{p}_{\mathrm{T}}^{\mathrm{charged}}$", bins=10, start=0, stop=1)
         pdgid_axis= hist.axis.Regular(name="pdgid",   label="D0 id's", bins=10, start=0, stop=250)
         d0_axis  = hist.axis.Regular(name='d0',   label="$d_0$", bins=10, start=0, stop=100)
         njets_axis = hist.axis.Regular(name='njets', label='$N_{\mathrm{jets}}$', bins=10, start=0, stop=10)
@@ -80,7 +80,7 @@ class AnalysisProcessor(processor.ProcessorABC):
         jpsi_mass_axis = hist.axis.Regular(name='mass', label='J/Psi mass [GeV]', bins=len(self.jpsi_mass_bins), start=self.jpsi_mass_bins[0], stop=self.jpsi_mass_bins[-1])
         d0_mass_axis = hist.axis.Regular(name='mass', label='D0 mass [GeV]', bins=len(self.d0_mass_bins), start=self.d0_mass_bins[0], stop=self.d0_mass_bins[-1])
         mass_axes = [hist.axis.Regular(name=f'd0_{int(xb_bin*10)}', label='D0 mass [GeV] (' + str(round(self.xb_bins[ibin], 2)) + ' < $x_{\mathrm{b}}$ < ' + str(round(self.xb_bins[ibin+1], 2)) + ')', bins=len(self.d0_mass_bins), start=self.d0_mass_bins[0], stop=self.d0_mass_bins[-1]) for ibin,xb_bin in enumerate(self.xb_bins[:-1])]
-        meson_axis = hist.axis.IntCategory(name="meson_id", label="Meson pdgId (421 D0, 443 J/Psi, 443211 J/Psi+K)", categories=[421, 443, 42113])
+        meson_axis = hist.axis.IntCategory(name="meson_id", label="Meson pdgId (421 D0, 443 J/Psi, 443211 J/Psi+K)", categories=[421, 443, 42113], growth=True)
         #meson_axis = hist.axis.IntCategory(name="meson_id", label="Meson pdgId (421 D0, 42113 D0mu, 443 J/Psi, 443211 J/Psi+K)", categories=[421, 42113, 443])
         # light = 0
         # c = 4
@@ -273,12 +273,14 @@ class AnalysisProcessor(processor.ProcessorABC):
 
         #ele = ele[isPresElec(ele.pt, ele.eta, ele.dxy, ele.dz, ele.miniPFRelIso_all, ele.sip3d, getattr(ele,"mvaFall17V2noIso_WPL"))]
         #mu = mu[isPresMuon(mu.dxy, mu.dz, mu.sip3d, mu.eta, mu.pt, mu.miniPFRelIso_all)]
-        #ele = ele[isTightElec(ele) & ~isVetoElec(ele)]
-        #mu  = mu[isTightMuon(mu) & ~isVetoMuon(mu)]
         ele["isTightLep"] = isTightElec(ele)
         mu["isTightLep"]  = isTightMuon(mu)
+        ele["isVetoLep"]  = isVetoElec(ele)
+        mu ["isVetoLep"]  = isVetoMuon(mu)
         ele = ele[isTightElec(ele)]
         mu  = mu[isTightMuon(mu)]
+        #ele = ele[isTightElec(ele) & ~isVetoElec(ele)]
+        #mu  = mu[isTightMuon(mu) & ~isVetoMuon(mu)]
         AttachElectronSF(ele,year=year)
         AttachMuonSF(mu,year=year)
         leptons = ak.with_name(ak.concatenate([ele, mu], axis=1), 'PtEtaPhiMCandidate')
@@ -419,6 +421,7 @@ class AnalysisProcessor(processor.ProcessorABC):
             isBtagJetsLoose = (goodJets.btagDeepFlavB > btagwpl)
             isNotBtagJetsLoose = np.invert(isBtagJetsLoose)
             nbtagsl = ak.num(goodJets[isBtagJetsLoose])
+            addTriggerCat(events)
             # Move to selection.py
             def is_ttbar(jets, bjets, mu, ele, leptons, met):
                 jets_pt = ak.fill_none(ak.pad_none(jets.pt, 1), 0)
@@ -430,10 +433,12 @@ class AnalysisProcessor(processor.ProcessorABC):
                 #llpairs = ak.fill_none(ak.pad_none(ak.combinations(leptons, 2, fields=["l0","l1"]), 1), False)
                 #llpairs = llpairs[~ak.is_none(llpairs)]
                 
-                goodJet  = ak.fill_none(ak.pad_none(jets.isGood & jets.isClean, 1), False)
-                goodBJet = ak.fill_none(ak.pad_none(bjets.isGood & bjets.isClean, 1), False)
-                nJets = ak.num(jets[goodJet])
-                nBJets = ak.num(bjets[goodBJet])
+                #goodJet  = ak.fill_none(ak.pad_none(jets.isGood & jets.isClean, 1), False)
+                #goodBJet = ak.fill_none(ak.pad_none(bjets.isGood & bjets.isClean, 1), False)
+                #nJets = ak.num(jets[goodJet])
+                #nBJets = ak.num(bjets[goodBJet])
+                nJets = ak.num(jets)
+                nBJets = ak.num(bjets)
                 nLep = ak.num(leptons)
                 jpt30 = jets_pt[:,0] > 30
                 jpt30 = ak.max(jets.pt, -1) > 30
@@ -468,7 +473,9 @@ class AnalysisProcessor(processor.ProcessorABC):
                 #is_ttbar = (ak.num(jets)>4)&(ak.num(bjets_tight)>1)&((ak.num(ele)>1)|(ak.num(mu)>1))# & (pad_jets[:,0].pt>30)# & ((pad_ele[:,0].pt>25) | (pad_mu[:,0].pt>25))#&(ht>180)
                 #return QCD & DY & (nJets >= 1) & (nBJets >=1) & (nLep >= 1) & bpt30 & jpt30 & lpt# & jeta24 & leta24
                 #FIXME
-                return (nJets >= 3) & (nBJets >=1) & (nLep >= 1) & ak.any(goodJet, axis=-1) & ak.any(goodBJet, axis=-1)
+                return ((nJets >= 3) & (nBJets >= 1) & (nLep >= 1), # & ak.any(goodJet, axis=-1) & ak.any(goodBJet, axis=-1)
+                       (nJets >= 3) & (nBJets == 0) & (nLep >= 1))# & ak.any(goodJet, axis=-1) & ak.any(goodBJet, axis=-1)
+                #return (nJets >= 3) & (nBJets >=1) & (nLep >= 1)# & ak.any(goodJet, axis=-1) & ak.any(goodBJet, axis=-1)
                 #return (nJets >= 1) & (nBJets >=1) & (nLep >= 1) & lpt & ak.any(goodJet, axis=-1) & ak.any(goodBJet, axis=-1)
                 #return (nJets >= 1) & (nBJets >=1) & (nLep >= 1) * ak.any(goodJet, axis=-1) & ak.any(goodBJet, axis=-1)
 
@@ -511,7 +518,8 @@ class AnalysisProcessor(processor.ProcessorABC):
             b0pt = ak.sort(bjets_tight.pt, axis=1, ascending=False)
             nbj  = ak.num(ak.fill_none(ak.pad_none(ak.sort(bjets_tight.pt, axis=1, ascending=False), 1), 0))
             #goodJet = jets[charm_cand.jetIdx].isGood
-            events['is_ttbar'] = is_ttbar(goodJets, bjets_tight, mu, ele, mu, met)
+            events['is_ttbar'] = is_ttbar(goodJets, bjets_tight, mu, ele, mu, met)[0]
+            events['is_qcd'] = is_ttbar(goodJets, bjets_tight, mu, ele, mu, met)[1]
             #events['is_ttbar'] = is_ttbar(goodJets, bjets_tight, mu, ele, leptons, met)
 
 
@@ -544,15 +552,15 @@ class AnalysisProcessor(processor.ProcessorABC):
                         weights_obj_base_for_kinematic_syst.add(f"btagSF{b_syst}", events.nom, (pDataUp/pMC)/(pData/pMC),(pDataDo/pMC)/(pData/pMC))
 
                 # Trigger SFs
-                #GetTriggerSF(year,events,leptons[:,0],leptons[:,1])
-                #weights_obj_base_for_kinematic_syst.add(f"triggerSF_{year}", events.trigger_sf, copy.deepcopy(events.trigger_sfUp), copy.deepcopy(events.trigger_sfDown))            # In principle does not have to be in the lep cat loop
+                GetTriggerSF(year,events,leptons)
+                weights_obj_base_for_kinematic_syst.add(f"triggerSF_{year}", events.trigger_sf, copy.deepcopy(events.trigger_sfUp), copy.deepcopy(events.trigger_sfDown))            # In principle does not have to be in the lep cat loop
 
 
             ######### Event weights that do depend on the lep cat ###########
 
             # Loop over categories and fill the dict
             weights_dict = {}
-            for ch_name in ["ttbar", "d0", "d0mu", "jpsi"]:
+            for ch_name in ["ttbar", "d0", "d0mu", "jpsi", "qcd"]:
 
                 # For both data and MC
                 weights_dict[ch_name] = copy.deepcopy(weights_obj_base_for_kinematic_syst)
@@ -753,7 +761,9 @@ class AnalysisProcessor(processor.ProcessorABC):
 
             lep_cat_dict = {
                 "mu" : 
-                    (ak.num(mu[mu.pt > 26])==1) & (ak.num(ele) == 0) & (ak.num(mu[mu.pt < 26]) == 0),
+                    (ak.num(mu[mu.pt > 26])==1) & \
+                    (ak.num(ele) == 0) & \
+                    (ak.num(mu[mu.isVetoLep & ~mu.isTightLep]) == 0),
                 #"ele" : 
                 #    (ak.num(mu) == 0) & (ak.num(ele[ele.pt > 35]) == 1) & (ak.num(ele[ele.pt < 35]) == 0),
                 #"mm" : 
@@ -766,58 +776,10 @@ class AnalysisProcessor(processor.ProcessorABC):
 
             # This dictionary keeps track of which selections go with which CR categories
             cr_cat_dict = {
-                '''
-                "2l_CRflip" : {
-                    "atmost_3j" : {
-                        "lep_chan_lst" : ["2lss_CRflip"],
-                        "lep_flav_lst" : ["ee"],
-                        "appl_lst"     : ["isSR_2lSS" , "isAR_2lSS"] + (["isAR_2lSS_OS"] if isData else []),
-                    },
+                "qcd" : {
+                    "cuts" : events.is_qcd & ~cand_mask & ht_mask & pass_trg,
+                    #"cuts" : events.is_qcd & ht_mask & ~b_mask & pass_trg & cand_mask & chi2_mask,
                 },
-                "2l_CR" : {
-                    "exactly_1j" : {
-                        "lep_chan_lst" : ["2lss_CR"],
-                        "lep_flav_lst" : ["ee" , "em" , "mm"],
-                        "appl_lst"     : ["isSR_2lSS" , "isAR_2lSS"] + (["isAR_2lSS_OS"] if isData else []),
-                    },
-                    "exactly_2j" : {
-                        "lep_chan_lst" : ["2lss_CR"],
-                        "lep_flav_lst" : ["ee" , "em" , "mm"],
-                        "appl_lst"     : ["isSR_2lSS" , "isAR_2lSS"] + (["isAR_2lSS_OS"] if isData else []),
-                    },
-                    "exactly_3j" : {
-                        "lep_chan_lst" : ["2lss_CR"],
-                        "lep_flav_lst" : ["ee" , "em" , "mm"],
-                        "appl_lst"     : ["isSR_2lSS" , "isAR_2lSS"] + (["isAR_2lSS_OS"] if isData else []),
-                    },
-                },
-                "3l_CR" : {
-                    "exactly_0j" : {
-                        "lep_chan_lst" : ["3l_CR"],
-                        "lep_flav_lst" : ["eee" , "eem" , "emm", "mmm"],
-                        "appl_lst"     : ["isSR_3l" , "isAR_3l"],
-                    },
-                    "atleast_1j" : {
-                        "lep_chan_lst" : ["3l_CR"],
-                        "lep_flav_lst" : ["eee" , "eem" , "emm", "mmm"],
-                        "appl_lst"     : ["isSR_3l" , "isAR_3l"],
-                    },
-                },
-                "2los_CRtt" : {
-                    "exactly_2j"   : {
-                        "lep_chan_lst" : ["2los_CRtt"],
-                        "lep_flav_lst" : ["em"],
-                        "appl_lst"     : ["isSR_2lOS" , "isAR_2lOS"],
-                    },
-                },
-                "2los_CRZ" : {
-                    "atleast_0j"   : {
-                        "lep_chan_lst" : ["2los_CRZ"],
-                        "lep_flav_lst" : ["ee", "mm"],
-                        "appl_lst"     : ["isSR_2lOS" , "isAR_2lOS"],
-                    },
-                },
-                '''
             }
 
             # Include SRs and CRs unless we asked to skip them
@@ -880,6 +842,7 @@ class AnalysisProcessor(processor.ProcessorABC):
 
                     # Loop over nlep categories "2l", "3l", "4l"
                     for cat_chan in cat_dict.keys():
+                        if dense_axis_name == 'b0pt' and cat_chan == 'qcd': continue
                         # Need to do this inside of nlep cat loop since some wgts depend on lep cat
                         weights_object = weights_dict[cat_chan]
 
@@ -925,9 +888,8 @@ class AnalysisProcessor(processor.ProcessorABC):
                                 all_cuts_mask = (all_cuts_mask & ecut_mask)
 
                             # Weights
-                            if cat_chan == 'ttbar':
+                            if cat_chan == 'ttbar' or cat_chan == 'qcd':
                                 all_cuts_mask = ak.fill_none(ak.fill_none(ak.pad_none(all_cuts_mask, 1), False), False, axis=0)
-                                #weights_flat = np.nan_to_num(weight[all_cuts_mask], nan=0, posinf=0, neginf=0)
                             weights_flat = np.nan_to_num(weight[ak.fill_none(ak.any(all_cuts_mask, -1), False)], nan=0, posinf=0, neginf=0)
 
                             # Fill the histos
@@ -1028,7 +990,10 @@ class AnalysisProcessor(processor.ProcessorABC):
                                 #if 'xb_mass' not in dense_axis_name and 'ctau' not in dense_axis_name:
                                 #    axes_fill_info_dict.pop('meson_id')
                                 if 'ctau' in dense_axis_name:
-                                    jet_flav_val = ak.flatten(ak.firsts(jet_flav[sort][all_cuts_mask], axis=-1), 0)
+                                    if cat_chan == 'qcd':
+                                        jet_flav_val = ak.flatten(ak.firsts(ak.ones_like(jets.jetId)[all_cuts_mask], axis=-1), 0)
+                                    else:
+                                        jet_flav_val = ak.flatten(ak.firsts(jet_flav[sort][all_cuts_mask], axis=-1), 0)
                                     axes_fill_info_dict['jet_flav'] = jet_flav_val
                                 if 'nmeson' in dense_axis_name:
                                     axes_fill_info_dict[dense_axis_name] = ak.num(dense_axis_vals[all_cuts_mask])
