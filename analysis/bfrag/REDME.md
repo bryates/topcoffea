@@ -1,1 +1,0 @@
-python run_xb.py -x dask mc_and_data16GH_SingleMuon.json --hist-list xb_mass_d0 xb_mass_d0mu xb_mass_jpsi nleps njets nbjets l0pt j0pt b0pt ht met ctau nvtx --do-systs --njobs 200 -s 250000; python plot.py; echo $$ | mail -s "$$" yates.313@osu.edu
